@@ -1,0 +1,25 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "personal-plugins",
+  "description": "Personal Claude plugins synced across machines",
+  "owner": {
+    "name": "krushiraj"
+  },
+  "plugins": [
+    {
+      "name": "guru-release",
+      "description": "Deployment workflow for Guru (staging, production, version management)",
+      "source": "./plugins/guru-release"
+    },
+    {
+      "name": "mac-system-cleaner",
+      "description": "Disk cleanup utility for macOS developer caches",
+      "source": "./plugins/mac-system-cleaner"
+    },
+    {
+      "name": "crawler-dev",
+      "description": "Debug and fix PDF/META crawlers for academic publishers",
+      "source": "./plugins/crawler-dev"
+    }
+  ]
+}
