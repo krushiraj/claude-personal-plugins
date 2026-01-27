@@ -40,4 +40,3 @@ A Claude Code plugin to analyze and reclaim disk space consumed by developer too
 
 - macOS
 - Claude Code CLI
-<!-- sync test 2: Tue Jan 27 18:18:24 IST 2026 -->
