@@ -1,0 +1,5 @@
+# Sync temporary files
+.sync-lock
+.sync.log
+.sync-conflict
+.DS_Store

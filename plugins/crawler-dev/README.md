@@ -9,3 +9,5 @@ Debug, fix, and verify PDF/META crawlers for academic publishers.
 ## Usage
 
 This skill is automatically triggered when you mention a crawler URL or driver name.
+
+<!-- sync test: Tue Jan 27 18:13:54 IST 2026 -->
