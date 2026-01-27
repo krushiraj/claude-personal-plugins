@@ -1,0 +1,12 @@
+[Unit]
+Description=Claude Personal Plugins Sync Watcher
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/bin/bash -c 'while true; do inotifywait -r -e modify,create,delete,move $HOME/.claude-personal-plugins/plugins && sleep 5 && $HOME/.claude-personal-plugins/sync/sync-push.sh; done'
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

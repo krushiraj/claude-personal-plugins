@@ -1,0 +1,9 @@
+{
+  "name": "mac-system-cleaner",
+  "version": "1.0.0",
+  "description": "Analyze and reclaim disk space consumed by developer tools and caches on macOS",
+  "author": {
+    "name": "Krushi"
+  },
+  "keywords": ["macos", "disk", "cleanup", "cache", "docker", "xcode", "developer"]
+}

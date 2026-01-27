@@ -1,0 +1,19 @@
+{
+  "name": "personal-plugins",
+  "description": "Personal Claude plugins synced across machines",
+  "version": "1.0.0",
+  "plugins": [
+    {
+      "name": "guru-release",
+      "path": "plugins/guru-release"
+    },
+    {
+      "name": "mac-system-cleaner",
+      "path": "plugins/mac-system-cleaner"
+    },
+    {
+      "name": "crawler-dev",
+      "path": "plugins/crawler-dev"
+    }
+  ]
+}

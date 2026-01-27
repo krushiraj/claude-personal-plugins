@@ -1,0 +1,9 @@
+{
+  "name": "guru-release",
+  "version": "0.1.0",
+  "description": "Guided deployment workflow for Guru staging and production releases",
+  "author": {
+    "name": "Paperpile"
+  },
+  "keywords": ["deployment", "release", "guru", "staging", "production"]
+}
