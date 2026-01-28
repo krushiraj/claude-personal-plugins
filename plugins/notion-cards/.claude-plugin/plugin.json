@@ -1,0 +1,5 @@
+{
+  "name": "notion-cards",
+  "version": "1.0.0",
+  "description": "Notion cards workflow - list cards, start work with branch/spec/PR, track status"
+}
