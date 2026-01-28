@@ -29,7 +29,7 @@ try {
 
     # Commit with auto message
     $message = "auto: update $changedPlugin"
-    git commit -m $message
+    git commit -m $message --author="Automation <noreply@users.noreply.github.com>"
 
     # Pull with rebase first
     $pullResult = git pull --rebase origin main 2>&1

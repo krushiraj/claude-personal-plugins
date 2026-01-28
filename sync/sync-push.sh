@@ -25,7 +25,7 @@ CHANGED_PLUGIN=$(git status --porcelain | head -1 | awk '{print $2}' | cut -d'/'
 git add -A
 
 # Commit with auto message
-git commit -m "auto: update ${CHANGED_PLUGIN:-plugins}"
+git commit -m "auto: update ${CHANGED_PLUGIN:-plugins}" --author="Automation <noreply@users.noreply.github.com>"
 
 # Pull with rebase first to avoid conflicts
 if ! git pull --rebase origin main 2>/dev/null; then
