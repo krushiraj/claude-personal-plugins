@@ -40,7 +40,7 @@ Start work on a Notion card by creating a branch, writing a spec file, and openi
 
 5. **Ask user to confirm branch name**:
    ```
-   I'll create branch: krushi-id-1234-implement-user-auth
+   I'll create branch: krushi/id-1234-implement-user-auth
 
    Is this branch name OK? (yes/suggest alternative)
    ```
