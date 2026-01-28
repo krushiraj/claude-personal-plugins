@@ -48,7 +48,7 @@ Start work on a Notion card by creating a branch, writing a spec file, and openi
    git checkout -b "{branch_name}"
    ```
 
-7. **Create spec file** at `specs/{ID}-spec.md`:
+7. **Create spec file** at `specs/{ID}-spec.md` (DO NOT COMMIT):
    ```markdown
    # {ID}: {Title}
 
@@ -60,11 +60,10 @@ Start work on a Notion card by creating a branch, writing a spec file, and openi
    {Content from Notion card}
    ```
 
-8. **Commit and push**:
+   **IMPORTANT**: Never add spec files to git. They are for local reference only.
+
+8. **Push branch**:
    ```bash
-   mkdir -p specs
-   git add specs/{ID}-spec.md
-   git commit -m "[{ID}] Add spec for {short_title}"
    git push -u origin {branch_name}
    ```
 
