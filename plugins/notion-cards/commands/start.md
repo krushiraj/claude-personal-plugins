@@ -31,10 +31,12 @@ Start work on a Notion card by creating a branch, writing a spec file, and openi
    bash ${CLAUDE_PLUGIN_ROOT}/scripts/fetch-card-content.sh "$token" "$page_id"
    ```
 
+   The script recursively fetches all nested blocks. For linked pages/databases, it shows placeholders like `[📄 Linked Page: Title]` instead of fetching their content.
+
 4. **Generate branch name**:
-   - Pattern: `{owner_name_lowercase}-{id_lowercase}-{2-5-word-description}`
+   - Pattern: `{owner_name_lowercase}/{id_lowercase}-{2-5-word-description}`
    - Auto-generate description from card title (key words, hyphenated)
-   - Example: `krushi-id-1234-implement-user-auth`
+   - Example: `krushi/id-1234-implement-user-auth`
 
 5. **Ask user to confirm branch name**:
    ```
