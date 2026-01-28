@@ -82,7 +82,7 @@ Start work on a Notion card by creating a branch, writing a spec file, and openi
 
 10. **Confirm completion**:
     ```
-    ✓ Branch created: krushi-id-1234-implement-user-auth
+    ✓ Branch created: krushi/id-1234-implement-user-auth
     ✓ Spec written: specs/ID-1234-spec.md (local only, not committed)
     ✓ Draft PR opened: [ID-1234] Implement User Authentication
 
@@ -92,9 +92,9 @@ Start work on a Notion card by creating a branch, writing a spec file, and openi
 ## Branch Naming Rules
 
 - All lowercase
-- Format: `{owner}-{id}-{description}`
+- Format: `{owner}/{id}-{description}`
 - Description: 2-5 words from title, most relevant keywords
-- No special characters except hyphens
+- No special characters except hyphens (and slash after owner)
 
 ## Error Handling
 
