@@ -81,7 +81,7 @@ Start work on a Notion card by creating a branch, writing a spec file, and openi
 10. **Confirm completion**:
     ```
     ✓ Branch created: krushi-id-1234-implement-user-auth
-    ✓ Spec written: specs/ID-1234-spec.md
+    ✓ Spec written: specs/ID-1234-spec.md (local only, not committed)
     ✓ Draft PR opened: [ID-1234] Implement User Authentication
 
     Would you like to brainstorm the implementation approach?
