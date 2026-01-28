@@ -13,9 +13,9 @@ List the user's Notion cards grouped by status.
 
 ## Instructions
 
-1. Read settings from `.claude/notion-cards.local.md`:
+1. Read settings from `~/.claude/notion-cards.local.md` (user-level config):
    ```bash
-   cat .claude/notion-cards.local.md
+   cat ~/.claude/notion-cards.local.md
    ```
    Extract: `notion_token`, `database_id`, `owner_uuid`
 
