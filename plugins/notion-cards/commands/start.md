@@ -24,7 +24,7 @@ Start work on a Notion card by creating a branch, writing a spec file, and openi
    - If Notion URL: fetch page to get ID property
    - If card ID (e.g., `ID-1234`): use directly
 
-2. **Read settings** from `.claude/notion-cards.local.md`
+2. **Read settings** from `~/.claude/notion-cards.local.md` (user-level config)
 
 3. **Fetch card details** from Notion API:
    ```bash

@@ -20,6 +20,11 @@
       "name": "crawler-dev",
       "description": "Debug and fix PDF/META crawlers for academic publishers",
       "source": "./plugins/crawler-dev"
+    },
+    {
+      "name": "notion-cards",
+      "description": "Notion cards workflow - list cards, start work with branch/spec/PR, track status",
+      "source": "./plugins/notion-cards"
     }
   ]
 }
