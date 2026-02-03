@@ -105,6 +105,8 @@ When user provides a card ID or Notion link:
 {Card description/content from Notion}
 ```
 
+**IMPORTANT**: Spec files are local reference only - never commit them to git.
+
 **Draft PR creation:**
 ```bash
 git checkout -b "{branch_name}"
