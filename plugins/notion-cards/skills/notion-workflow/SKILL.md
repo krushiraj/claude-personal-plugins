@@ -111,11 +111,9 @@ When user provides a card ID or Notion link:
 ```bash
 git checkout -b "{branch_name}"
 mkdir -p specs
-# Write spec file
-git add specs/{ID}-spec.md
-git commit -m "[{ID}] Add spec for {title}"
+# Write spec file (local only - never commit)
 git push -u origin {branch_name}
-gh pr create --draft --title "[{ID}] {Title}" --body "Spec: specs/{ID}-spec.md"
+gh pr create --draft --title "[{ID}] {Title}" --body "## Spec\n\nSee: specs/{ID}-spec.md (local only)"
 ```
 
 ### 3. Check Card Status
