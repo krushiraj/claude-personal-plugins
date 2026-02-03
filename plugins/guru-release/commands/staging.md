@@ -33,7 +33,7 @@ Execute these phases sequentially, stopping for user confirmation at each checkp
 
 4. Check for related changes in misc/shared/pp that may affect guru by examining recent commits.
 
-5. Create two output files in js/guru/:
+5. Create two output files in `~/Desktop/guru-release/` (create directory if needed):
    - `guru-release-notes.md` - Formatted release notes with Slack message
    - `guru-diff.txt` - Full diff for review
 
@@ -41,7 +41,7 @@ Execute these phases sequentially, stopping for user confirmation at each checkp
 
 7. Display summary in chat AND show file locations.
 
-**CHECKPOINT 1**: Wait for user to review the diff and release notes. Ask: "Please review guru-release-notes.md and guru-diff.txt. Ready to proceed with versioning?"
+**CHECKPOINT 1**: Wait for user to review the diff and release notes. Ask: "Please review `~/Desktop/guru-release/guru-release-notes.md` and `~/Desktop/guru-release/guru-diff.txt`. Ready to proceed with versioning?"
 
 ### Phase 2: Version and Tag
 

@@ -49,7 +49,7 @@ Use the guru-deployment skill for deployment knowledge.
    - Format Slack-ready message
    - Get current version for the message
 
-7. Create output files in `js/guru/`:
+7. Create output files in `~/Desktop/guru-release/` (create directory if needed):
    - Write diff to `guru-diff.txt`
    - Write release notes to `guru-release-notes.md`
 
