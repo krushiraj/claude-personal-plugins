@@ -79,7 +79,7 @@ When user provides a card ID or Notion link:
 1. **Extract card ID** from input (ID-1234 or Notion URL)
 2. **Read settings** from `.claude/notion-cards.local.md`
 3. **Fetch card details** from Notion API
-4. **Generate branch name**: `{owner_name_lowercase}-{id_lowercase}-{2-5-word-description}`
+4. **Generate branch name**: `{owner_name_lowercase}/{id_lowercase}-{2-5-word-description}`
    - Auto-generate description from card title
    - **Ask user to confirm** before creating branch
 5. **Create branch** after confirmation
@@ -91,7 +91,7 @@ When user provides a card ID or Notion link:
 - Owner name from settings (lowercase)
 - Card ID lowercase (e.g., `id-1234`)
 - 2-5 words from title, hyphen-separated
-- Example: `krushi-id-1234-implement-user-auth`
+- Example: `krushi/id-1234-implement-user-auth`
 
 **Spec file format** (`specs/{ID}-spec.md`):
 ```markdown
