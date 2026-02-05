@@ -50,7 +50,10 @@ Start work on a Notion card by creating a branch, writing a spec file, and openi
    git checkout -b "{branch_name}"
    ```
 
-7. **Create spec file** at `specs/{ID}-spec.md` (DO NOT COMMIT):
+7. **Create spec file** at `~/Desktop/guru-release/{ID}/spec.md`:
+   ```bash
+   mkdir -p ~/Desktop/guru-release/{ID}
+   ```
    ```markdown
    # {ID}: {Title}
 
@@ -62,8 +65,6 @@ Start work on a Notion card by creating a branch, writing a spec file, and openi
    {Content from Notion card}
    ```
 
-   **IMPORTANT**: Never add spec files to git. They are for local reference only.
-
 8. **Push branch**:
    ```bash
    git push -u origin {branch_name}
@@ -73,7 +74,7 @@ Start work on a Notion card by creating a branch, writing a spec file, and openi
    ```bash
    gh pr create --draft --title "[{ID}] {Title}" --body "## Spec
 
-   See: specs/{ID}-spec.md
+   See: ~/Desktop/guru-release/{ID}/spec.md
 
    ## Card
 
@@ -83,7 +84,7 @@ Start work on a Notion card by creating a branch, writing a spec file, and openi
 10. **Confirm completion**:
     ```
     ✓ Branch created: krushi/id-1234-implement-user-auth
-    ✓ Spec written: specs/ID-1234-spec.md (local only, not committed)
+    ✓ Spec written: ~/Desktop/guru-release/ID-1234/spec.md
     ✓ Draft PR opened: [ID-1234] Implement User Authentication
 
     Would you like to brainstorm the implementation approach?
