@@ -83,7 +83,7 @@ When user provides a card ID or Notion link:
    - Auto-generate description from card title
    - **Ask user to confirm** before creating branch
 5. **Create branch** after confirmation
-6. **Write spec file** to `specs/{ID}-spec.md`
+6. **Write spec file** to `~/Desktop/guru-release/{ID}/spec.md`
 7. **Create draft PR** with title `[{ID}] {Card Title}`
 
 **Branch naming rules:**
@@ -93,7 +93,10 @@ When user provides a card ID or Notion link:
 - 2-5 words from title, hyphen-separated
 - Example: `krushi/id-1234-implement-user-auth`
 
-**Spec file format** (`specs/{ID}-spec.md`):
+**Spec file format** (`~/Desktop/guru-release/{ID}/spec.md`):
+```bash
+mkdir -p ~/Desktop/guru-release/{ID}
+```
 ```markdown
 # {ID}: {Title}
 
@@ -104,8 +107,6 @@ When user provides a card ID or Notion link:
 
 {Card description/content from Notion}
 ```
-
-**IMPORTANT**: Spec files are local reference only - never commit them to git.
 
 **Draft PR creation:**
 ```bash
