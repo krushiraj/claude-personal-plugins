@@ -111,10 +111,10 @@ mkdir -p ~/Desktop/guru-release/{ID}
 **Draft PR creation:**
 ```bash
 git checkout -b "{branch_name}"
-mkdir -p specs
-# Write spec file (local only - never commit)
+mkdir -p ~/Desktop/guru-release/{ID}
+# Write spec file to ~/Desktop/guru-release/{ID}/spec.md
 git push -u origin {branch_name}
-gh pr create --draft --title "[{ID}] {Title}" --body "## Spec\n\nSee: specs/{ID}-spec.md (local only)"
+gh pr create --draft --title "[{ID}] {Title}" --body "## Spec\n\nSee: ~/Desktop/guru-release/{ID}/spec.md"
 ```
 
 ### 3. Check Card Status
