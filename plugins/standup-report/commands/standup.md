@@ -54,6 +54,23 @@ Parse the JSON to identify:
 - Cards in "Code Review" (things completed, waiting for review)
 - Cards recently moved to "Done" or "QA" statuses (completed work)
 
+**Claude Code conversation history (for additional context):**
+
+Scan recent Claude Code conversation logs in `~/.claude/projects/` for work-related directories (those containing `-work-` in the path). The logs are `.jsonl` files. Look for conversations modified within the date range:
+```bash
+find ~/.claude/projects/ -name "*.jsonl" -path "*-work-*" -newer /tmp/since_marker 2>/dev/null
+```
+Create the marker file first: `touch -t YYYYMMDDHHMM /tmp/since_marker`
+
+For each recent conversation log, use Grep to search for patterns like:
+- SSH connections (`ssh `)
+- Server names or IPs
+- Deployment commands
+- Database operations
+- Key work activities discussed
+
+This provides context about what the user was working on via Claude Code sessions - e.g., "Used Claude Code to debug crawler issues" or "Worked with Claude Code on deployment to staging".
+
 ### Step 4: Synthesize and format output
 
 Using all gathered data, produce answers for these 3 Geekbot questions:
