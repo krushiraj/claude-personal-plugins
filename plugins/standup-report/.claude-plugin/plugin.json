@@ -1,0 +1,5 @@
+{
+  "name": "standup-report",
+  "version": "1.0.0",
+  "description": "Daily standup updates, period reports for 1:1s, and self-retrospective analytics from git, Notion, and shell history"
+}
