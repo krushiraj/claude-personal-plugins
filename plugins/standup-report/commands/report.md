@@ -47,6 +47,9 @@ bash ${CLAUDE_PLUGIN_ROOT}/scripts/shell-history.sh "SINCE_DATE" "UNTIL_DATE"
 **Notion cards (if available):**
 Use the notion-cards plugin's `fetch-cards.sh` script. Look for it at `~/.claude/plugins/cache/personal-plugins/notion-cards/` in the `scripts/` directory.
 
+**Claude Code conversation history:**
+Scan `~/.claude/projects/` for `.jsonl` files in work-related directories (paths containing `-work-`). Filter by modification date within the report period. Grep for SSH sessions, server names, deployments, and key work discussions. This reveals what was worked on via Claude Code sessions.
+
 ### Step 4: Analyze and categorize
 
 Group all work into these categories:
