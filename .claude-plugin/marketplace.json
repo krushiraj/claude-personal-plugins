@@ -25,6 +25,11 @@
       "name": "notion-cards",
       "description": "Notion cards workflow - list cards, start work with branch/spec/PR, track status",
       "source": "./plugins/notion-cards"
+    },
+    {
+      "name": "standup-report",
+      "description": "Daily standup updates, period reports for 1:1s, and self-retrospective analytics",
+      "source": "./plugins/standup-report"
     }
   ]
 }
