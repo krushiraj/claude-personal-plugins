@@ -1,0 +1,5 @@
+{
+  "name": "obsidian-recall",
+  "version": "1.0.0",
+  "description": "Recall context from Obsidian vault using QMD search. Session summaries saved automatically on conversation end."
+}
