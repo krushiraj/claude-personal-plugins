@@ -63,7 +63,7 @@ qmd get "qmd://obsidian/path/to/file.md" -l 50
 ## Step 2C: Graph Visualization
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/session-graph.py DATE_EXPR --all-projects
+${CLAUDE_PLUGIN_ROOT}/.venv/bin/python3 ${CLAUDE_PLUGIN_ROOT}/scripts/session-graph.py DATE_EXPR --all-projects
 ```
 
 ## Step 4: Present Summary
