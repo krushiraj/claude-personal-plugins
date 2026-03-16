@@ -1,18 +1,34 @@
 ---
-name: session-summary
-description: On session end, summarize the conversation and save key insights to Obsidian vault
+name: session-sync
+description: On session end, sync session metadata to Obsidian and add rich summary for meaningful conversations
 hooks:
   - event: Stop
     type: prompt
 ---
 
-# Session Summary Hook
+# Session Sync Hook
 
-Before ending, review the entire conversation and decide if it contains knowledge worth preserving. Skip trivial conversations (simple questions, quick lookups, greetings).
+Two-phase hook that runs on every session end.
 
-## Quality Gate
+## Phase 1: Always Sync Metadata
 
-Only save a note if the conversation contains at least ONE of:
+Run the sync script to create/update the session metadata file:
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/claude-sessions sync --session-id ${CLAUDE_SESSION_ID} --quiet
+```
+
+This creates `claude-conversation/YYYY-MM-DD-<short-id>.md` with frontmatter (date, session_id, project, branch, messages, skills, artifacts) and user message excerpts.
+
+If the script fails or CLAUDE_SESSION_ID is not available, continue to Phase 2 anyway.
+
+## Phase 2: Quality-Gated Rich Summary
+
+Review the entire conversation and decide if it contains knowledge worth preserving beyond the basic metadata.
+
+### Quality Gate
+
+Only enhance the session file if the conversation contains at least ONE of:
 - A non-obvious technical insight, discovery, or debugging finding
 - An architectural decision or design rationale
 - A solution to a problem that took multiple steps to figure out
@@ -20,29 +36,24 @@ Only save a note if the conversation contains at least ONE of:
 - Important project context, decisions, or tradeoffs discussed
 - Research findings or analysis results
 
-Do NOT save notes for:
+Do NOT enhance for:
 - Simple file edits or routine code changes
 - Quick Q&A with obvious answers
 - Conversations that were mostly tool output
 - Incomplete conversations where nothing was resolved
 
-## If Worth Saving
+### If Worth Enhancing
 
-Create a markdown file at:
-`~/Library/Mobile Documents/iCloud~md~obsidian/Documents/ObsidianVault/claude-conversation/YYYY-MM-DD-short-title.md`
+Find the session file created in Phase 1 at:
+`~/Library/Mobile Documents/iCloud~md~obsidian/Documents/ObsidianVault/claude-conversation/`
 
-Use this structure:
+The file matching the current session will be named `YYYY-MM-DD-<first 8 chars of session id>.md`.
+
+Read the file, then **insert rich content sections** between the `## My Notes` section and the `## Conversation` section. Preserve all existing content (frontmatter, My Notes, Conversation). Also update the frontmatter `tags` field.
+
+Add these sections (skip any that have nothing meaningful):
 
 ```markdown
----
-date: YYYY-MM-DD
-project: <project name from working directory>
-tags: [relevant, topic, tags]
-type: conversation-summary
----
-
-# <Descriptive Title>
-
 ## Summary
 <2-3 sentence summary of what was accomplished>
 
@@ -54,23 +65,29 @@ type: conversation-summary
 - <Decision and its rationale, if any>
 
 ## Technical Details
-<Only include if there are specific commands, configurations, or code patterns worth remembering. Keep it concise - just the essential reference material, not full code blocks.>
+<Only include if there are specific commands, configurations, or code patterns worth remembering. Keep concise.>
 
 ## Next Steps
 - <Any unfinished work or follow-ups identified>
 ```
 
-Rules:
-- Keep notes concise - aim for under 50 lines total
+### If NOT Worth Enhancing
+
+Do nothing further — the metadata file from Phase 1 is sufficient.
+
+## Rules
+
+- Keep enhanced notes concise — aim for under 50 lines of added content
 - Focus on the "why" and insights, not the "what" (the code diff tells the what)
 - Use specific details, not vague summaries
 - Tags should be 2-5 lowercase words that help with future search
-- Title should be specific enough to find later (e.g. "Setting up Apple Notes to Obsidian sync" not "Note sync work")
-- Skip sections that have nothing meaningful (e.g. no "Decisions Made" if none were made)
+- Update the `tags` field in frontmatter when adding rich content
+- Skip sections that have nothing meaningful
 
 ## Indexing
 
-After writing the note, update the QMD index:
+After writing (whether Phase 1 only or Phase 1 + Phase 2), update the QMD index if qmd is available:
+
 ```bash
-qmd update -c obsidian
+qmd update -c obsidian 2>/dev/null || true
 ```
