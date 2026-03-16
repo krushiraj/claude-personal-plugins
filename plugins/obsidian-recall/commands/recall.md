@@ -58,7 +58,7 @@ node ~/.bun/install/global/node_modules/@tobilu/qmd/dist/cli/qmd.js search "VARI
 
 For top 3 results:
 ```bash
-qmd get "qmd://obsidian/path/to/file.md" -l 50
+node ~/.bun/install/global/node_modules/@tobilu/qmd/dist/cli/qmd.js get "qmd://obsidian/path/to/file.md" -l 50
 ```
 
 ## Step 2C: Graph Visualization
