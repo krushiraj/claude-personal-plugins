@@ -1,5 +1,5 @@
 {
   "name": "obsidian-recall",
-  "version": "1.0.0",
-  "description": "Recall context from Obsidian vault using QMD search. Session summaries saved automatically on conversation end."
+  "version": "2.0.0",
+  "description": "Recall context from Obsidian vault and sync Claude sessions. Auto-saves session metadata on end, quality-gated summaries for meaningful conversations. CLI and slash commands for session management."
 }
