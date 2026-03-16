@@ -30,6 +30,11 @@
       "name": "standup-report",
       "description": "Daily standup updates, period reports for 1:1s, and self-retrospective analytics",
       "source": "./plugins/standup-report"
+    },
+    {
+      "name": "obsidian-recall",
+      "description": "Recall context from Obsidian vault and sync Claude sessions",
+      "source": "./plugins/obsidian-recall"
     }
   ]
 }
