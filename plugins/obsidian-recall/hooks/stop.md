@@ -29,7 +29,7 @@ Do NOT save notes for:
 ## If Worth Saving
 
 Create a markdown file at:
-`~/Library/Mobile Documents/com~apple~CloudDocs/ObsidianVault/claude-conversation/YYYY-MM-DD-short-title.md`
+`~/Library/Mobile Documents/iCloud~md~obsidian/Documents/ObsidianVault/claude-conversation/YYYY-MM-DD-short-title.md`
 
 Use this structure:
 
