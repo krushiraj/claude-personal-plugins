@@ -2,7 +2,7 @@
 name: recall
 description: Load context from Obsidian vault memory. Temporal queries use native JSONL timeline. Topic queries use QMD BM25 search. Graph mode generates interactive visualization. Every recall ends with "One Thing" - the single highest-leverage next action.
 argument-hint: [yesterday|today|last week|this week|TOPIC|graph DATE_EXPR]
-allowed-tools: Bash(qmd:*), Bash(python3:*)
+allowed-tools: Bash(qmd:*), Bash(python3:*), Bash(node:*)
 ---
 
 # Recall Command
