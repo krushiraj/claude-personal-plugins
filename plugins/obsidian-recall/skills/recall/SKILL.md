@@ -6,7 +6,7 @@ description: Load context from Obsidian vault memory. Temporal queries (yesterda
 # Recall Skill
 
 This skill provides context recall from the Obsidian vault at:
-`~/Library/Mobile Documents/com~apple~CloudDocs/ObsidianVault`
+`~/Library/Mobile Documents/iCloud~md~obsidian/Documents/ObsidianVault`
 
 ## QMD Collections
 
@@ -23,5 +23,5 @@ This skill provides context recall from the Obsidian vault at:
 ## Key Paths
 
 - Scripts: `${CLAUDE_PLUGIN_ROOT}/scripts/`
-- Vault: `~/Library/Mobile Documents/com~apple~CloudDocs/ObsidianVault/`
-- Conversation notes: `~/Library/Mobile Documents/com~apple~CloudDocs/ObsidianVault/claude-conversation/`
+- Vault: `~/Library/Mobile Documents/iCloud~md~obsidian/Documents/ObsidianVault/`
+- Conversation notes: `~/Library/Mobile Documents/iCloud~md~obsidian/Documents/ObsidianVault/claude-conversation/`
