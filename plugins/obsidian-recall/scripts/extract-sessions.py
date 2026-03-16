@@ -13,7 +13,7 @@ import argparse
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-VAULT_DIR = str(Path.home() / "Library/Mobile Documents/com~apple~CloudDocs/ObsidianVault")
+VAULT_DIR = str(Path.home() / "Library/Mobile Documents/iCloud~md~obsidian/Documents/ObsidianVault")
 DEFAULT_OUTPUT = os.path.join(VAULT_DIR, "claude-sessions-qmd")
 DEFAULT_DAYS = 21
 
