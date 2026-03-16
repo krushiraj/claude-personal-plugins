@@ -2,7 +2,7 @@
 name: recall
 description: Load context from Obsidian vault memory. Temporal queries use native JSONL timeline. Topic queries use QMD BM25 search. Graph mode generates interactive visualization. Every recall ends with "One Thing" - the single highest-leverage next action.
 argument-hint: [yesterday|today|last week|this week|TOPIC|graph DATE_EXPR]
-allowed-tools: Bash(qmd:*), Bash(python3:*), Bash(node:*)
+allowed-tools: Bash(qmd:*), Bash(python3:*)
 ---
 
 # Recall Command
@@ -40,16 +40,15 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/recall-day.py expand SESSION_ID --all-proj
 
 **Step 2B.2: Run ALL variants across collections in parallel:**
 
-IMPORTANT: Always run qmd via node to ensure sqlite-vec works:
 ```bash
-node ~/.bun/install/global/node_modules/@tobilu/qmd/dist/cli/qmd.js search "VARIANT_1" -c obsidian -n 5
-node ~/.bun/install/global/node_modules/@tobilu/qmd/dist/cli/qmd.js search "VARIANT_2" -c obsidian -n 5
-node ~/.bun/install/global/node_modules/@tobilu/qmd/dist/cli/qmd.js search "VARIANT_3" -c obsidian -n 5
+qmd search "VARIANT_1" -c obsidian -n 5
+qmd search "VARIANT_2" -c obsidian -n 5
+qmd search "VARIANT_3" -c obsidian -n 5
 ```
 
 If a `sessions` collection exists, also search it:
 ```bash
-node ~/.bun/install/global/node_modules/@tobilu/qmd/dist/cli/qmd.js search "VARIANT_1" -c sessions -n 5
+qmd search "VARIANT_1" -c sessions -n 5
 ```
 
 **Step 2B.3: Deduplicate** by document path, keep highest scores. Present top 5.
@@ -58,7 +57,7 @@ node ~/.bun/install/global/node_modules/@tobilu/qmd/dist/cli/qmd.js search "VARI
 
 For top 3 results:
 ```bash
-node ~/.bun/install/global/node_modules/@tobilu/qmd/dist/cli/qmd.js get "qmd://obsidian/path/to/file.md" -l 50
+qmd get "qmd://obsidian/path/to/file.md" -l 50
 ```
 
 ## Step 2C: Graph Visualization
