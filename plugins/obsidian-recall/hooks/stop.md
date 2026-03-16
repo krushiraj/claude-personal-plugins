@@ -72,5 +72,5 @@ Rules:
 
 After writing the note, update the QMD index:
 ```bash
-node ~/.bun/install/global/node_modules/@tobilu/qmd/dist/cli/qmd.js update -c obsidian
+qmd update -c obsidian
 ```
