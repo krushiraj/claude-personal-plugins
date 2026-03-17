@@ -86,8 +86,13 @@ Do nothing further — the metadata file from Phase 1 is sufficient.
 
 ## Indexing
 
-After writing (whether Phase 1 only or Phase 1 + Phase 2), update the QMD index if qmd is available:
+After writing (whether Phase 1 only or Phase 1 + Phase 2), extract recent sessions and update QMD indexes if qmd is available:
 
 ```bash
+# Extract recent sessions for QMD sessions collection
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/extract-sessions.py --days 3 --source ~/.claude/projects --output "$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/ObsidianVault/claude-sessions-qmd" 2>/dev/null || true
+
+# Update both QMD collections
 qmd update -c obsidian 2>/dev/null || true
+qmd update -c sessions 2>/dev/null || true
 ```
