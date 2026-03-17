@@ -161,8 +161,8 @@ def main():
     args = parser.parse_args()
 
     cutoff = datetime.now(timezone.utc) - timedelta(days=args.days)
-    pattern = os.path.join(args.source, "*.jsonl")
-    all_files = glob.glob(pattern)
+    pattern = os.path.join(args.source, "**/*.jsonl")
+    all_files = glob.glob(pattern, recursive=True)
 
     recent_files = []
     for f in all_files:
