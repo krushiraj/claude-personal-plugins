@@ -14,7 +14,18 @@ Changes in these directories may affect Guru even when the commit is outside js/
 ## Known Flaky Tests
 
 Some smoke tests fail intermittently and can usually be ignored:
-- (Add specific test names as you learn them)
+
+**Graph Endpoint** (often returns 204 instead of 200 for these DOIs against staging):
+- `Graph Endpoint > Suggest by DOI - 10.1157/13053457`
+- `Graph Endpoint > Suggest by DOI - 10.5284/1000389`
+- `Graph Endpoint > References by DOI - 10.1157/13053457`
+- `Graph Endpoint > References by DOI - 10.5284/1000389`
+- `Graph Endpoint > Citations by DOI - 10.1157/13053457`
+- `Graph Endpoint > Citations by DOI - 10.5284/1000389`
+
+**Match Endpoint**:
+- `Match Endpoint > Match POST match query title with pubtype ARTICLE` (Hypoxia/mRNA paper — title casing/match drift)
+- `Match Endpoint > Match - should get a pub with long title` (already `.skip`ped — server can die on long titles)
 
 ## Worker Server Priority
 
