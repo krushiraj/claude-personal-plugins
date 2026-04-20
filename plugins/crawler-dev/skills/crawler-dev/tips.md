@@ -198,6 +198,58 @@ Call built-in function:
 
 ---
 
+## Publisher-Specific Findings
+
+### APS (American Physical Society)
+- **Restricted signature changed**: APS moved from `<h2>Authorization Required` to `<h1 class="...">Authorization Required` — strip heading tag from the signature and match only `Authorization Required`.
+- **physics.aps.org (Physics magazine)** has NO `citation_pdf_url` meta tag, unlike `journals.aps.org`. Needs a separate rule: `match: 'href="(/articles/pdf/[^"]+)"'`.
+- **Pattern**: `pdf_restricted_sigs: ['Authorization Required']` (no prefix)
+
+### PsyArXiv (Open Science Framework)
+- `psyarxiv.com/{id}` redirects to `osf.io/preprints/psyarxiv/{id}` which is a **Angular/JS SPA** with no meta tags in initial HTML.
+- **Fix**: add a specific rewrite that jumps straight to the OSF download URL:
+  ```typescript
+  { rewrite: ['^https?://(?:www\\.)?psyarxiv\\.com/([^/?#]+).*', 'https://osf.io/download/$1/'] }
+  ```
+- The generic fallback `(https?://[^/]+)/.*?([^/]+)/?$` → `$1/download/$2/` still works for `osf.io/preprints/*`.
+
+### JSTOR
+- **Bug**: `url.match(/\/(\d+)\??/)` only captures digits before first `.`, so `10.1086/663681` becomes `10`. Breaks DOI-shaped IDs (`10.1086/663681`) and prefixed IDs (`resrep00259.13`).
+- **Fix**: capture everything after `/stable/` (or `/stable/info/`) up to a `?`:
+  ```typescript
+  const [, documentId] = url.match(/\/stable\/(?:info\/)?([^?#]+?)\/?$/) || [];
+  ```
+
+### EuropePMC (PubMed Central)
+- `europepmc.org/articles/PMC{id}` → 302 redirects server-side to `/article/PMC/{id}` (singular `article`, with slash between `PMC` and id).
+- `europepmc.org/articles/PMC{id}/pdf/{any}.pdf` → 302 redirects to `/backend/ptpmcrender.fcgi?accid=PMC{id}&blobtype=pdf` (the real PDF).
+- **Bug in pubmed.ts**: old regex `replace(/.+europepmc.+\/articles\/PMC(\d+)/, '$1?pdf=render')` dropped the digits. Use `/articles/PMC{id}/pdf/x.pdf` instead to hit the redirect.
+- **Note**: May still fail from Node-side if CF blocks; meant to work in browser.
+
+### Anubis Challenge (OpenEdition, etc.)
+- Some sites use [Anubis](https://github.com/TecharoHQ/anubis) proof-of-work challenge page.
+- **Signature to detect**: `Protected by <a href="https://github.com/TecharoHQ/anubis">Anubis</a>`
+- Add as `blocking_body_sigs` so the crawler reports BLOCKED rather than CRAWLER_FAILED.
+- Affected publishers: OpenEdition (`journals.openedition.org`).
+
+## Diagnosis Workflow (Quick Wins First)
+
+When asked to fix many failing tests, triage this way:
+
+1. **Run `yarn crawler:e2e:chrome` for each provider** to get pass/fail counts.
+2. **Group failures by type** from the crawler logs:
+   - `BLOCKED` (populated `blockedUrl`) → Cloudflare / captcha / AWS WAF; rarely fixable from our side.
+   - `CRAWLER_FAILED` with `blockedUrl: null` → rule logic issue; try to fix.
+   - `FETCH_FAILED: The URL does not point to a valid PDF file` → the rewritten URL returns HTML; regex or URL pattern bug.
+   - `DRIVER_FAILED: No driver match` → test URL migrated to a different publisher; update test URL or add URL pattern.
+   - `ACCESS_RESTRICTED` ± `LOGIN_REQUIRED` → working correctly; check test `restricted:` expectation.
+3. **Priority order**:
+   - Signature/regex bugs in driverFunctions (highest leverage — often fixes multiple tests at once).
+   - URL pattern mismatches (easy, surgical).
+   - Test URLs migrated to new providers (update `pdfTests.ts` or `metaTests.ts`).
+   - Captcha/Cloudflare — document with `description` in tests, don't attempt to bypass.
+4. **Blocked locally vs in user's env**: If you see `Blocked by Cloudflare captcha` on *every* fetch, it's your IP. The user's test runner env is often not CF-blocked, so logic fixes still land even if verification has to wait.
+
 ## Adding New Tips
 
 When you discover a new pattern:
