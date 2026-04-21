@@ -228,6 +228,17 @@ Call built-in function:
   2. Hit `https://europepmc.org/api/getPdf?pmcid={pmcid}` — returns `application/pdf` directly. One call, no captcha, no filename guessing.
 - **Don't use this for ncbi.nlm.nih.gov/pmc URLs** — those still work via the original cloudpmc-PoW path. Scope the regex to `europepmc\.org` only.
 
+### DSpace 7 (Angular SPA repositories)
+- **Symptom**: `match`/`fn: 'JqMeta'` returns null. The `bodyText` the crawler sees is just `<!DOCTYPE html>...<ds-app></ds-app>...` with no `citation_pdf_url` meta.
+- **Cause**: DSpace 7 server-side renders only for *non-browser* user agents. Real Chrome (which the crawler advertises) gets the empty Angular app shell. The full meta-tagged page is only delivered to bots/curl-style UAs.
+- **Quick check**: `curl -A "Mozilla/5.0 (...) Chrome/..." -L URL` returns ~800 bytes vs `curl -A "Mozilla/5.0" -L URL` returning hundreds of KB.
+- **Fix**: use the public REST API instead. The flow is:
+  1. URL after redirect: `https://{host}/items/{itemUuid}` → extract `itemUuid`.
+  2. Call `https://{host}/server/api/core/items/{itemUuid}?embed=bundles/bitstreams` (returns `application/hal+json` — must add to `allowedMimeTypes`).
+  3. Find the `ORIGINAL` bundle, then the `.pdf` bitstream, then return `_links.content.href` (`/server/api/core/bitstreams/{uuid}/content`) — that endpoint returns `application/pdf` directly.
+- **Pass `allowedMimeTypes` on the per-request fetch** inside the fn (the global driver `allowed_mime_types` only applies to the *initial* step fetch, not subsequent fetches the fn makes).
+- Implemented in `driverFunctions/pdf/dspace.ts`. Falls back to JqMeta for legacy `/handle/...` URLs.
+
 ### Anubis Challenge (OpenEdition, etc.)
 - Some sites use [Anubis](https://github.com/TecharoHQ/anubis) proof-of-work challenge page.
 - **Signature to detect**: `Protected by <a href="https://github.com/TecharoHQ/anubis">Anubis</a>`
