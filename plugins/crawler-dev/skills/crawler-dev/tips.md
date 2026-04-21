@@ -228,6 +228,12 @@ Call built-in function:
   2. Hit `https://europepmc.org/api/getPdf?pmcid={pmcid}` — returns `application/pdf` directly. One call, no captcha, no filename guessing.
 - **Don't use this for ncbi.nlm.nih.gov/pmc URLs** — those still work via the original cloudpmc-PoW path. Scope the regex to `europepmc\.org` only.
 
+### Webroute / ISTL anti-bot interstitial (Biotaxa Zootaxa, etc.)
+- **Symptom**: HTTP 200 OK with `text/html`, but body is `<!doctype html><html><head><title></title>...<script>(function(...))...` — heavily obfuscated JS, no real content. JqMeta returns null.
+- **Marker**: response headers include `X-Webroute-Cache-Reason` / `X-Webroute-Cache`; body contains `ISTL-INFINITE-LOOP`, `ISTL-RESPONSE-URL`, `ISTL-REDIRECT-TO`.
+- **Detection**: `detectCaptcha` doesn't catch this (status is 200, no `cf-mitigated`, no "Just a moment..." title).
+- **Fix**: add `ISTL-INFINITE-LOOP` to the driver's `pdf_restricted_sigs` so the crawler reports `ACCESS_RESTRICTED` instead of `CRAWLER_FAILED`. (`blocking_body_sigs` would set `BLOCKED`, but restricted-test expectations don't accept BLOCKED — they require ACCESS_RESTRICTED/LOGIN_REQUIRED/PROXY_LOGGED_OUT.)
+
 ### DSpace 7 (Angular SPA repositories)
 - **Symptom**: `match`/`fn: 'JqMeta'` returns null. The `bodyText` the crawler sees is just `<!DOCTYPE html>...<ds-app></ds-app>...` with no `citation_pdf_url` meta.
 - **Cause**: DSpace 7 server-side renders only for *non-browser* user agents. Real Chrome (which the crawler advertises) gets the empty Angular app shell. The full meta-tagged page is only delivered to bots/curl-style UAs.
