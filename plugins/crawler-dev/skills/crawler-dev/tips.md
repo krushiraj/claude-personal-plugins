@@ -221,10 +221,13 @@ Call built-in function:
   ```
 
 ### EuropePMC (PubMed Central)
-- `europepmc.org/articles/PMC{id}` → 302 redirects server-side to `/article/PMC/{id}` (singular `article`, with slash between `PMC` and id).
-- `europepmc.org/articles/PMC{id}/pdf/{any}.pdf` → 302 redirects to `/backend/ptpmcrender.fcgi?accid=PMC{id}&blobtype=pdf` (the real PDF).
-- **Bug in pubmed.ts**: old regex `replace(/.+europepmc.+\/articles\/PMC(\d+)/, '$1?pdf=render')` dropped the digits. Use `/articles/PMC{id}/pdf/x.pdf` instead to hit the redirect.
-- **Note**: May still fail from Node-side if CF blocks; meant to work in browser.
+- The `europepmc.org/articles/PMC{id}` page is a JS shell — no `citation_pdf_url`, and the `/pdf/` redirect goes to a flaky `/backend/ptpmcrender.fcgi?...` backend.
+- The PMID-based URLs (`europepmc.org/abstract/MED/{pmid}`, `pmc.ncbi.nlm.nih.gov/articles/pmid/{pmid}/...`) now serve a Google reCAPTCHA wall — *not* the cloudpmc PoW that pubmed.ts can solve.
+- **Working approach (used in pubmed.ts for europepmc URLs only)**:
+  1. If PMID URL: resolve to PMCID via `https://pmc.ncbi.nlm.nih.gov/tools/idconv/api/v1/articles/?ids={pmid}&format=json` (look at `records[0].pmcid`).
+  2. Call `https://europepmc.org/api/fulltextRepo?pmcId={pmcid}&type=METADATA` to get the file list — pick the entry where `type === "pdf"` and read its `filename`.
+  3. Build `https://europepmc.org/api/fulltextRepo?pmcId={pmcid}&type=FILE&fileName={encoded}&mimeType=application/pdf` — returns `application/pdf` directly.
+- **Don't use this for ncbi.nlm.nih.gov/pmc URLs** — those still work via the original cloudpmc-PoW path. Scope the regex to `europepmc\.org` only.
 
 ### Anubis Challenge (OpenEdition, etc.)
 - Some sites use [Anubis](https://github.com/TecharoHQ/anubis) proof-of-work challenge page.
