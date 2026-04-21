@@ -225,8 +225,7 @@ Call built-in function:
 - The PMID-based URLs (`europepmc.org/abstract/MED/{pmid}`, `pmc.ncbi.nlm.nih.gov/articles/pmid/{pmid}/...`) now serve a Google reCAPTCHA wall — *not* the cloudpmc PoW that pubmed.ts can solve.
 - **Working approach (used in pubmed.ts for europepmc URLs only)**:
   1. If PMID URL: resolve to PMCID via `https://pmc.ncbi.nlm.nih.gov/tools/idconv/api/v1/articles/?ids={pmid}&format=json` (look at `records[0].pmcid`).
-  2. Call `https://europepmc.org/api/fulltextRepo?pmcId={pmcid}&type=METADATA` to get the file list — pick the entry where `type === "pdf"` and read its `filename`.
-  3. Build `https://europepmc.org/api/fulltextRepo?pmcId={pmcid}&type=FILE&fileName={encoded}&mimeType=application/pdf` — returns `application/pdf` directly.
+  2. Hit `https://europepmc.org/api/getPdf?pmcid={pmcid}` — returns `application/pdf` directly. One call, no captcha, no filename guessing.
 - **Don't use this for ncbi.nlm.nih.gov/pmc URLs** — those still work via the original cloudpmc-PoW path. Scope the regex to `europepmc\.org` only.
 
 ### Anubis Challenge (OpenEdition, etc.)
