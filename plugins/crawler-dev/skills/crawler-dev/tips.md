@@ -228,6 +228,18 @@ Call built-in function:
   2. Hit `https://europepmc.org/api/getPdf?pmcid={pmcid}` — returns `application/pdf` directly. One call, no captcha, no filename guessing.
 - **Don't use this for ncbi.nlm.nih.gov/pmc URLs** — those still work via the original cloudpmc-PoW path. Scope the regex to `europepmc\.org` only.
 
+### URL-pattern restriction (short-circuit before fetch)
+- **Use case**: a site is fronted by a WAF/captcha (e.g. AWS WAF 202 + `x-amzn-waf-action: challenge`) so the crawler can never reach the body — body-based `pdf_restricted_sigs` never run. You want the driver to report `ACCESS_RESTRICTED` up-front.
+- **Mechanism**: `pdf_url_restricted_sigs` on the driver is a list of URL regexes; if the current step URL matches, `step.ts` adds `ACCESS_RESTRICTED` to `encounteredErrors` and aborts the step — no fetch.
+- **Example** (PubFactory → thejns.org):
+  ```typescript
+  PubFactory: {
+    urls: ['thejns\\.org', ...],
+    pdf_url_restricted_sigs: ['thejns\\.org'],
+  }
+  ```
+- **Tip**: only use this when the *entire* URL pattern is consistently restricted. If some articles on the host are OK, fall back to body-based sigs after the fetch.
+
 ### Restricted-signature regex misses HTML tags between words
 - **Symptom**: Page clearly contains "subscriber/AMA member/login required" text but `pdf_restricted_sigs` doesn't fire.
 - **Cause**: The page wraps the message with `<br/>` (or other inline HTML) between words, e.g. `accessible to AMA<br/> members`. The regex (literal text, no HTML allowance) doesn't match.
