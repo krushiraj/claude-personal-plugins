@@ -228,6 +228,17 @@ Call built-in function:
   2. Hit `https://europepmc.org/api/getPdf?pmcid={pmcid}` — returns `application/pdf` directly. One call, no captcha, no filename guessing.
 - **Don't use this for ncbi.nlm.nih.gov/pmc URLs** — those still work via the original cloudpmc-PoW path. Scope the regex to `europepmc\.org` only.
 
+### Restricted-signature regex misses HTML tags between words
+- **Symptom**: Page clearly contains "subscriber/AMA member/login required" text but `pdf_restricted_sigs` doesn't fire.
+- **Cause**: The page wraps the message with `<br/>` (or other inline HTML) between words, e.g. `accessible to AMA<br/> members`. The regex (literal text, no HTML allowance) doesn't match.
+- **Fix**: replace inline literal spaces with a small character class, e.g. `'accessible to AMA.{0,20}members'`, or pick a unique unbroken substring like `'Login to MJA or subscribe now'`.
+- **Tip**: when adding a new sig, paste a chunk of the rendered HTML from the page source — don't trust the visible text.
+
+### Match step requires chars after `.pdf` (`[^"']+` vs `[^"']*`)
+- **Symptom**: `match` step fails on URLs that end exactly at `.pdf"` (no query string, no trailing slash).
+- **Cause**: Common pattern `href=["']([^"']+\.pdf[^"']+)["']` requires *one or more* non-quote chars *after* `.pdf`. URLs like `?wpdmdl=…&filename=foo.pdf"` (Giovanni Fioriti / clinicalneuropsychiatry) have zero chars after `.pdf`.
+- **Fix**: change the trailing `[^"']+` to `[^"']*` (zero or more).
+
 ### Webroute / ISTL anti-bot interstitial (Biotaxa Zootaxa, etc.)
 - **Symptom**: HTTP 200 OK with `text/html`, but body is `<!doctype html><html><head><title></title>...<script>(function(...))...` — heavily obfuscated JS, no real content. JqMeta returns null.
 - **Marker**: response headers include `X-Webroute-Cache-Reason` / `X-Webroute-Cache`; body contains `ISTL-INFINITE-LOOP`, `ISTL-RESPONSE-URL`, `ISTL-REDIRECT-TO`.
