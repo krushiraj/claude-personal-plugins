@@ -1,6 +1,6 @@
 ---
 name: start
-description: Start work on a Notion card - creates branch, spec file, and draft PR
+description: Start work on a Notion card - brainstorm, implement, then push and open draft PR
 argument-hint: "<card-id or notion-link>"
 allowed-tools:
   - Read
@@ -12,11 +12,25 @@ allowed-tools:
 
 # Start Work on Card
 
-Start work on a Notion card by creating a branch, writing a spec file, and opening a draft PR.
+Start work on a Notion card. The order is fixed: **brainstorm → investigate → implement → push → open draft PR**. Do not push or open the PR before the implementation is ready.
 
 ## Arguments
 
 - `card-id`: Card ID like `ID-1234` or a Notion page URL
+
+## Fixed workflow order
+
+1. Parse input and fetch card from Notion
+2. Confirm branch name with the user
+3. Create branch locally
+4. Write spec file locally
+5. **Brainstorm** the approach (use `superpowers:brainstorming`)
+6. **Investigate** the code as needed
+7. **Implement** the change (code + tests)
+8. Verify tests pass locally
+9. **Only then**: push the branch and open a draft PR
+
+Never push or open the PR before step 8. If the user explicitly asks to stop earlier (e.g. "just create the branch"), stop at that step and skip the rest.
 
 ## Instructions
 
@@ -65,29 +79,43 @@ Start work on a Notion card by creating a branch, writing a spec file, and openi
    {Content from Notion card}
    ```
 
-8. **Push branch**:
-   ```bash
-   git push -u origin {branch_name}
-   ```
+8. **Brainstorm the approach** — invoke `superpowers:brainstorming` with a concise summary of the card. Surface the root-cause analysis, propose 2–3 fix options with trade-offs, lead with the recommendation, and get user agreement before coding.
 
-9. **Create draft PR**:
-   ```bash
-   gh pr create --draft --title "[{ID}] {Title}" --body "## Spec
+9. **Investigate the codebase** as directed by the brainstorm — read the relevant files, verify assumptions the user flags (e.g. "do we actually do X anywhere?"), and report back with evidence before implementing.
 
-   See: ~/Desktop/guru-release/{ID}/spec.md
+10. **Implement the change** — write the code, add/update tests, and run them locally (`yarn test:one <path>` in guru). Do not proceed until tests pass.
 
-   ## Card
+11. **Push the branch** — only after steps 8–10 are complete:
+    ```bash
+    git push -u origin {branch_name}
+    ```
 
-   {notion_link}"
-   ```
+12. **Create draft PR** — only after pushing:
+    ```bash
+    gh pr create --draft --title "[{ID}] {Title}" --body "## Summary
 
-10. **Confirm completion**:
+    {1–3 bullets on what changed and why}
+
+    ## Spec
+
+    See: ~/Desktop/guru-release/{ID}/spec.md
+
+    ## Card
+
+    {notion_link}
+
+    ## Test plan
+
+    - [x] {test commands that were run}
+    - [ ] {any follow-up verification}"
+    ```
+
+13. **Confirm completion**:
     ```
     ✓ Branch created: krushi/id-1234-implement-user-auth
     ✓ Spec written: ~/Desktop/guru-release/ID-1234/spec.md
+    ✓ Implementation done and tests passing
     ✓ Draft PR opened: [ID-1234] Implement User Authentication
-
-    Would you like to brainstorm the implementation approach?
     ```
 
 ## Branch Naming Rules
