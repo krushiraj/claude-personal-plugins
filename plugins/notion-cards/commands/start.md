@@ -1,6 +1,6 @@
 ---
 name: start
-description: Start work on a Notion card - brainstorm, implement, then push and open draft PR
+description: Start work on a Notion card - brainstorm, investigate, implement, then (only on explicit user approval) commit, push, and open a draft PR
 argument-hint: "<card-id or notion-link>"
 allowed-tools:
   - Read
@@ -12,25 +12,29 @@ allowed-tools:
 
 # Start Work on Card
 
-Start work on a Notion card. The order is fixed: **brainstorm → investigate → implement → push → open draft PR**. Do not push or open the PR before the implementation is ready.
+Start work on a Notion card. The order is fixed: **brainstorm → investigate → implement → verify → ASK before commit → ASK before push → ASK before draft PR**.
 
-## Arguments
+## Fixed workflow order and hard rules
 
-- `card-id`: Card ID like `ID-1234` or a Notion page URL
+1. Parse input and fetch card from Notion.
+2. Confirm branch name with the user.
+3. Create branch locally.
+4. Write spec file locally.
+5. **Brainstorm** the approach (use `superpowers:brainstorming`).
+6. **Investigate** the code as directed by the brainstorm and any user follow-ups.
+7. **Implement** the change (code + tests). Run tests locally (`yarn test:one <path>` in guru).
+8. Show a diff/summary and **ask** before committing.
+9. After the user says yes: commit.
+10. **Ask** before pushing.
+11. After the user says yes: push.
+12. **Ask** before opening a draft PR.
+13. After the user says yes: open the draft PR.
 
-## Fixed workflow order
+**Hard rules:**
 
-1. Parse input and fetch card from Notion
-2. Confirm branch name with the user
-3. Create branch locally
-4. Write spec file locally
-5. **Brainstorm** the approach (use `superpowers:brainstorming`)
-6. **Investigate** the code as needed
-7. **Implement** the change (code + tests)
-8. Verify tests pass locally
-9. **Only then**: push the branch and open a draft PR
-
-Never push or open the PR before step 8. If the user explicitly asks to stop earlier (e.g. "just create the branch"), stop at that step and skip the rest.
+- **Never auto-commit, auto-push, or auto-open a PR.** A blanket "proceed" / "go ahead" / "implement it" on a design authorizes code edits and local test runs only. Commits, pushes, and PR creation each need their own explicit yes.
+- **Never fabricate an empty or placeholder commit** (e.g. `chore: init`, `wip`, blank commit) just to have something to push so you can open a draft PR. If there's no real diff, do not commit. If the user wants a draft PR with no code, they'll say so.
+- If the user explicitly asks to stop earlier ("just create the branch", "don't push yet"), stop at that step and skip the rest.
 
 ## Instructions
 
@@ -83,14 +87,15 @@ Never push or open the PR before step 8. If the user explicitly asks to stop ear
 
 9. **Investigate the codebase** as directed by the brainstorm — read the relevant files, verify assumptions the user flags (e.g. "do we actually do X anywhere?"), and report back with evidence before implementing.
 
-10. **Implement the change** — write the code, add/update tests, and run them locally (`yarn test:one <path>` in guru). Do not proceed until tests pass.
+10. **Implement the change** — write the code, add/update tests, run them locally (`yarn test:one <path>` in guru). Do not proceed until tests pass.
 
-11. **Push the branch** — only after steps 8–10 are complete:
-    ```bash
-    git push -u origin {branch_name}
-    ```
+11. **Pause and ask before committing.** Show the diff or a tight summary of what changed. Example: "Ready to commit — here's the proposed message: `<message>`. Want me to commit, or would you like to tweak it first?" Do not commit until the user confirms.
 
-12. **Create draft PR** — only after pushing:
+12. **Pause and ask before pushing.** Example: "Commit is in. Want me to push `{branch_name}`?" Do not push until the user confirms. Never use `--force` or `--force-with-lease` without an explicit request.
+
+13. **Pause and ask before opening the draft PR.** Example: "Pushed. Want me to open the draft PR now?" Do not open the PR until the user confirms.
+
+14. **Draft PR body** (when authorized to create it):
     ```bash
     gh pr create --draft --title "[{ID}] {Title}" --body "## Summary
 
@@ -110,13 +115,7 @@ Never push or open the PR before step 8. If the user explicitly asks to stop ear
     - [ ] {any follow-up verification}"
     ```
 
-13. **Confirm completion**:
-    ```
-    ✓ Branch created: krushi/id-1234-implement-user-auth
-    ✓ Spec written: ~/Desktop/guru-release/ID-1234/spec.md
-    ✓ Implementation done and tests passing
-    ✓ Draft PR opened: [ID-1234] Implement User Authentication
-    ```
+15. **Confirm completion** after each approved step, not at the end of the whole workflow — the user is driving.
 
 ## Branch Naming Rules
 
