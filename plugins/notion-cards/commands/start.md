@@ -95,15 +95,11 @@ Start work on a Notion card. The order is fixed: **brainstorm → investigate �
 
 13. **Pause and ask before opening the draft PR.** Example: "Pushed. Want me to open the draft PR now?" Do not open the PR until the user confirms.
 
-14. **Draft PR body** (when authorized to create it):
+14. **Draft PR body** (when authorized to create it) — the spec file lives locally only, so don't reference it in the PR:
     ```bash
     gh pr create --draft --title "[{ID}] {Title}" --body "## Summary
 
     {1–3 bullets on what changed and why}
-
-    ## Spec
-
-    See: ~/Desktop/guru-release/{ID}/spec.md
 
     ## Card
 
