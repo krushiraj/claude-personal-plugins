@@ -108,13 +108,13 @@ mkdir -p ~/Desktop/guru-release/{ID}
 {Card description/content from Notion}
 ```
 
-**Draft PR creation:**
+**Draft PR creation** — the spec file stays local only; don't reference it in the PR body:
 ```bash
 git checkout -b "{branch_name}"
 mkdir -p ~/Desktop/guru-release/{ID}
-# Write spec file to ~/Desktop/guru-release/{ID}/spec.md
+# Write spec file to ~/Desktop/guru-release/{ID}/spec.md (local reference only)
 git push -u origin {branch_name}
-gh pr create --draft --title "[{ID}] {Title}" --body "## Spec\n\nSee: ~/Desktop/guru-release/{ID}/spec.md"
+gh pr create --draft --title "[{ID}] {Title}" --body "## Summary\n\n{1–3 bullets}\n\n## Card\n\n{notion_link}"
 ```
 
 ### 3. Check Card Status
