@@ -81,30 +81,44 @@ Commit with a matching message.
 
 ### 9. **CHECKPOINT**: Ask user to confirm push
 
-"Ready to push both repos. This will trigger the Apify build from apify-actors. Confirm?"
+"Ready to push guru + apify-actors (main first, then release/production/metadata-crawler). The release branch push triggers the Apify build. Confirm?"
 
-### 10. Push both repos
+### 10. Push repos — main BEFORE release branch
+
+apify-actors must be pushed in two steps so `main` and `release/production/metadata-crawler` stay aligned. The release branch is what Apify deploys from; main is the source-of-truth default branch and should never lag behind it.
 
 Only if user confirms:
 ```bash
+# guru: push the dev commit
 cd /Users/krushi/work/paperpile/js/guru
 git push
 
+# apify-actors: commit was made on release/production/metadata-crawler. First
+# fast-forward main to it, push main, then push the release branch.
 cd /Users/krushi/work/apify-actors
+git fetch origin
+git checkout main
+git merge --ff-only release/production/metadata-crawler
+git push origin main
+
+git checkout release/production/metadata-crawler
 git push
 ```
+
+If `git merge --ff-only` fails because main has diverged, stop and ask the user — never force-push main.
 
 ## Post-Release
 
 Report completion:
 - guru changes pushed
-- apify-actors changes pushed
-- Apify will pick up changes from apify-actors repo (deployed from `webstore` account)
+- apify-actors `main` pushed (kept in sync)
+- apify-actors `release/production/metadata-crawler` pushed → Apify rebuild triggered (deployed from `webstore` account)
 
 ## Important Notes
 
 - Always run tests before releasing
 - Never push without user confirmation
+- `main` is pushed BEFORE `release/production/metadata-crawler` so the default branch never lags
 - The copy script uses rsync and excludes node_modules
 - Development happens only in guru; apify-actors is the production/deployment repo
 - Actors are deployed from apify-actors repo from the webstore account on Apify
