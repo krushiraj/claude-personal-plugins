@@ -1,0 +1,376 @@
+#!/usr/bin/env python3
+"""Sync Codex sessions to Obsidian markdown."""
+
+import argparse
+import json
+import os
+import re
+import sys
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+
+VAULT_DIR = Path.home() / "Library" / "Mobile Documents" / "iCloud~md~obsidian" / "Documents" / "ObsidianVault"
+OUTPUT_DIR = VAULT_DIR / "claude-conversation"
+CODEX_DIR = Path.home() / ".codex"
+CODEX_SESSIONS_DIR = CODEX_DIR / "sessions"
+CODEX_INDEX = CODEX_DIR / "session_index.jsonl"
+
+PRESERVED_FIELDS = {"comments", "projects", "status", "tags", "rating", "title"}
+PRESERVED_SECTION = "## My Notes"
+
+STRIP_PATTERNS = [
+    re.compile(r"<system-reminder>.*?</system-reminder>", re.DOTALL),
+    re.compile(r"<local-command-caveat>.*?</local-command-caveat>", re.DOTALL),
+    re.compile(r"<local-command-stdout>.*?</local-command-stdout>", re.DOTALL),
+    re.compile(r"<command-name>.*?</command-name>\s*<command-message>.*?</command-message>\s*(?:<command-args>.*?</command-args>)?", re.DOTALL),
+    re.compile(r"\[external_agent_tool_result\].*?\[/external_agent_tool_result\]", re.DOTALL),
+]
+
+
+def clean_content(text: str) -> str:
+    if not isinstance(text, str):
+        return ""
+    for pattern in STRIP_PATTERNS:
+        text = pattern.sub("", text)
+    return text.strip()
+
+
+def parse_jsonl(file_path: Path) -> list[dict]:
+    records = []
+    if not file_path.exists():
+        return records
+    with file_path.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                records.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+    return records
+
+
+def session_id_from_path(file_path: Path) -> str:
+    match = re.search(r"(019[0-9a-f-]{33,})", file_path.stem)
+    if match:
+        return match.group(1)
+    return file_path.stem
+
+
+def load_titles() -> dict[str, str]:
+    titles = {}
+    if not CODEX_INDEX.exists():
+        return titles
+    for record in parse_jsonl(CODEX_INDEX):
+        session_id = record.get("id")
+        title = record.get("thread_name")
+        if session_id and title:
+            titles[session_id] = clean_title(title)
+    return titles
+
+
+def clean_title(title: str) -> str:
+    title = clean_content(title)
+    title = re.sub(r"<command-name>(.*?)</command-name>", r"\1", title)
+    title = re.sub(r"<command-message>(.*?)</command-message>", r"\1", title)
+    title = re.sub(r"\s+", " ", title).strip()
+    return title[:100] if title else "Untitled Session"
+
+
+def extract_text_blocks(content) -> str:
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = []
+        for block in content:
+            if isinstance(block, dict):
+                if block.get("type") in {"input_text", "output_text", "text"}:
+                    parts.append(block.get("text", ""))
+            elif isinstance(block, str):
+                parts.append(block)
+        return "\n".join(parts)
+    return ""
+
+
+def parse_frontmatter(content: str) -> dict:
+    frontmatter = {}
+    match = re.match(r"^---\n(.*?)\n---\n", content, re.DOTALL)
+    if not match:
+        return frontmatter
+    current_array = None
+    for line in match.group(1).split("\n"):
+        if line.startswith("  - ") and current_array:
+            frontmatter.setdefault(current_array, []).append(line[4:].strip())
+            continue
+        if ":" not in line or line.startswith("  "):
+            continue
+        key, value = line.split(":", 1)
+        key = key.strip()
+        value = value.strip()
+        if value == "[]":
+            frontmatter[key] = []
+            current_array = key
+        elif value == "":
+            frontmatter[key] = []
+            current_array = key
+        else:
+            current_array = None
+            if value.startswith('"') and value.endswith('"'):
+                value = value[1:-1]
+            frontmatter[key] = value
+    return frontmatter
+
+
+def extract_my_notes_section(content: str) -> str | None:
+    if PRESERVED_SECTION not in content:
+        return None
+    match = re.search(rf"({re.escape(PRESERVED_SECTION)}.*?)(?=\n## |\Z)", content, re.DOTALL)
+    return match.group(1).rstrip() if match else None
+
+
+def extract_session_data(file_path: Path, titles: dict[str, str]) -> dict:
+    records = parse_jsonl(file_path)
+    session_id = session_id_from_path(file_path)
+    data = {
+        "session_id": session_id,
+        "date": None,
+        "title": titles.get(session_id),
+        "project": "unknown",
+        "cwd": None,
+        "messages": 0,
+        "user_messages": [],
+        "assistant_messages": [],
+        "first_timestamp": None,
+        "last_timestamp": None,
+        "files": set(),
+    }
+
+    for record in records:
+        timestamp = record.get("timestamp")
+        if timestamp:
+            data["last_timestamp"] = timestamp
+            if not data["first_timestamp"]:
+                data["first_timestamp"] = timestamp
+            if not data["date"]:
+                data["date"] = timestamp.split("T")[0]
+
+        if record.get("type") == "session_meta":
+            payload = record.get("payload", {})
+            data["session_id"] = payload.get("id") or data["session_id"]
+            data["cwd"] = payload.get("cwd")
+            if payload.get("cwd"):
+                data["project"] = Path(payload["cwd"]).name
+            if payload.get("timestamp") and not data["first_timestamp"]:
+                data["first_timestamp"] = payload["timestamp"]
+                data["date"] = payload["timestamp"].split("T")[0]
+
+        payload = record.get("payload", {})
+        if record.get("type") == "event_msg" and payload.get("type") == "user_message":
+            text = clean_content(payload.get("message", ""))
+            if text and len(text) >= 5 and not re.match(r"^/\w+\s*$", text):
+                data["user_messages"].append(text)
+                data["messages"] += 1
+
+        if record.get("type") == "event_msg" and payload.get("type") == "agent_message":
+            text = clean_content(payload.get("message", ""))
+            if text:
+                data["assistant_messages"].append(text)
+
+        if record.get("type") == "response_item" and payload.get("type") == "message":
+            role = payload.get("role")
+            text = clean_content(extract_text_blocks(payload.get("content", [])))
+            if role == "user" and text and len(text) >= 5:
+                data["user_messages"].append(text)
+                data["messages"] += 1
+            elif role == "assistant" and text:
+                data["assistant_messages"].append(text)
+
+        if record.get("type") == "event_msg" and payload.get("type") == "exec_command_end":
+            for parsed in payload.get("parsed_cmd", []):
+                path = parsed.get("path")
+                if path:
+                    data["files"].add(path)
+
+    if not data["title"] and data["user_messages"]:
+        data["title"] = clean_title(data["user_messages"][0].split("\n")[0])
+    if not data["title"]:
+        data["title"] = "Untitled Session"
+    if not data["date"]:
+        data["date"] = datetime.now().strftime("%Y-%m-%d")
+
+    return data
+
+
+def find_session_file(session_id: str) -> Path | None:
+    for file_path in OUTPUT_DIR.glob(f"*-codex-{session_id[:8]}.md"):
+        return file_path
+    return None
+
+
+def output_path(session_id: str, date: str) -> Path:
+    return OUTPUT_DIR / f"{date}-codex-{session_id[:8]}.md"
+
+
+def generate_markdown(data: dict, existing_fm: dict | None, my_notes: str | None) -> str:
+    title = (existing_fm or {}).get("title") or data["title"] or "Untitled Session"
+    title_escaped = title.replace('"', '\\"')
+    lines = [
+        "---",
+        "type: codex-session",
+        f"date: {data['date']}",
+        f"session_id: {data['session_id']}",
+        f'title: "{title_escaped}"',
+        f"project: {data['project']}",
+    ]
+    if data.get("cwd"):
+        lines.append(f"cwd: {data['cwd']}")
+    lines.extend(
+        [
+            f"messages: {data['messages']}",
+            f"last_activity: {data.get('last_timestamp') or datetime.now(timezone.utc).isoformat()}",
+            f"status: {(existing_fm or {}).get('status', 'active')}",
+        ]
+    )
+
+    tags = (existing_fm or {}).get("tags", [])
+    if isinstance(tags, list) and tags:
+        lines.append("tags:")
+        for tag in tags:
+            lines.append(f"  - {tag}")
+    else:
+        lines.append("tags: []")
+
+    lines.extend(
+        [
+            f"rating: {(existing_fm or {}).get('rating', 'null')}",
+            'comments: ""',
+            "---",
+            "",
+            f"# {title}",
+            "",
+        ]
+    )
+
+    if data["files"]:
+        lines.extend(["## Artifacts", ""])
+        for file_name in sorted(data["files"]):
+            lines.append(f"- `{file_name}`")
+        lines.append("")
+
+    if my_notes:
+        lines.append(my_notes)
+    else:
+        lines.extend(["## My Notes", "", "<!-- Add your notes here. This section is preserved across syncs. -->"])
+    lines.append("")
+
+    if data["user_messages"]:
+        lines.extend(["## Conversation", ""])
+        seen = set()
+        for message in data["user_messages"]:
+            if message in seen:
+                continue
+            seen.add(message)
+            display = message if len(message) <= 500 else message[:497] + "..."
+            lines.extend([f"> {display}", ""])
+
+    return "\n".join(lines)
+
+
+def sync_file(file_path: Path, quiet: bool = False, min_messages: int = 1) -> Path | None:
+    titles = load_titles()
+    data = extract_session_data(file_path, titles)
+    if data["messages"] < min_messages:
+        return None
+
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    existing_file = find_session_file(data["session_id"])
+    target = existing_file or output_path(data["session_id"], data["date"])
+    existing_fm = None
+    my_notes = None
+    if target.exists():
+        content = target.read_text(encoding="utf-8")
+        existing_fm = parse_frontmatter(content)
+        my_notes = extract_my_notes_section(content)
+    target.write_text(generate_markdown(data, existing_fm, my_notes), encoding="utf-8")
+    if not quiet:
+        print(f"Synced: {target}")
+    return target
+
+
+def all_session_files() -> list[Path]:
+    if not CODEX_SESSIONS_DIR.exists():
+        return []
+    return sorted(CODEX_SESSIONS_DIR.glob("**/*.jsonl"), key=lambda path: path.stat().st_mtime, reverse=True)
+
+
+def find_session_by_id(session_id: str) -> Path | None:
+    for file_path in all_session_files():
+        if session_id in file_path.stem:
+            return file_path
+    return None
+
+
+def cmd_sync(args) -> int:
+    if args.transcript:
+        file_paths = [Path(args.transcript).expanduser()]
+    elif args.session_id:
+        match = find_session_by_id(args.session_id)
+        file_paths = [match] if match else []
+    else:
+        cutoff = time.time() - (args.recent_minutes * 60)
+        file_paths = [path for path in all_session_files() if path.stat().st_mtime >= cutoff]
+        if not file_paths:
+            file_paths = all_session_files()[:1]
+
+    synced = 0
+    for file_path in file_paths:
+        if file_path and file_path.exists() and sync_file(file_path, args.quiet, args.min_messages):
+            synced += 1
+    if not args.quiet:
+        print(f"Synced {synced} Codex sessions")
+    return 0
+
+
+def cmd_export(args) -> int:
+    files = all_session_files()
+    if args.today:
+        cutoff = time.time() - 86400
+        files = [path for path in files if path.stat().st_mtime >= cutoff]
+    elif not args.all:
+        print("Error: use --today, --all, or sync", file=sys.stderr)
+        return 2
+
+    synced = 0
+    for file_path in files:
+        if sync_file(file_path, args.quiet, args.min_messages):
+            synced += 1
+    if not args.quiet:
+        print(f"Synced {synced} Codex sessions to {OUTPUT_DIR}")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(prog="codex-sessions", description="Sync Codex sessions to Obsidian markdown")
+    parser.add_argument("-q", "--quiet", action="store_true", help="Suppress output")
+    parser.add_argument("--min-messages", type=int, default=1, help="Skip sessions with fewer user messages")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    sync_parser = subparsers.add_parser("sync", help="Sync recent, explicit, or current Codex sessions")
+    sync_parser.add_argument("--session-id", help="Codex session id")
+    sync_parser.add_argument("--transcript", help="Codex JSONL transcript path")
+    sync_parser.add_argument("--recent-minutes", type=int, default=180, help="Recent modified files to sync when no session id is given")
+    sync_parser.set_defaults(func=cmd_sync)
+
+    export_parser = subparsers.add_parser("export", help="Batch export Codex sessions")
+    export_parser.add_argument("--today", action="store_true", help="Export sessions modified in the last 24 hours")
+    export_parser.add_argument("--all", action="store_true", help="Export all Codex sessions")
+    export_parser.set_defaults(func=cmd_export)
+
+    args = parser.parse_args()
+    return args.func(args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
