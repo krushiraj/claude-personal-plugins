@@ -5,6 +5,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -340,6 +341,7 @@ def cmd_sync(args) -> int:
             synced += 1
     if not args.quiet:
         print(f"Synced {synced} Codex sessions")
+    update_qmd_indexes()
     return 0
 
 
@@ -358,7 +360,16 @@ def cmd_export(args) -> int:
             synced += 1
     if not args.quiet:
         print(f"Synced {synced} Codex sessions to {OUTPUT_DIR}")
+    update_qmd_indexes()
     return 0
+
+
+def update_qmd_indexes() -> None:
+    for collection in ("obsidian", "sessions"):
+        try:
+            subprocess.run(["qmd", "update", "-c", collection], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+        except FileNotFoundError:
+            return
 
 
 def main() -> int:
