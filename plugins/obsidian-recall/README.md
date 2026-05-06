@@ -44,7 +44,7 @@ Codex session (~/.codex/sessions/YYYY/MM/DD/rollout-...<id>.jsonl)
         │
         │  Codex Stop/session_end hook
         ▼
-codex-sessions sync ───►  ObsidianVault/claude-conversation/YYYY-MM-DD-codex-<id8>.md
+codex-sessions sync ───►  ObsidianVault/claude-conversation/YYYY-MM-DD-codex-<unique-id-tail>.md
 ```
 
 Recall then reads either the raw JSONL (temporal/graph) or the QMD indexes (topic).
@@ -86,7 +86,7 @@ Primary Codex exporter. Subcommands:
 | `sync [--session-id ID] [--transcript PATH] [--recent-minutes N]` | Create/update Codex session notes from recent Codex JSONL transcripts. Called by Codex hooks. |
 | `export (--today \| --all)` | Bulk-export Codex sessions to the vault. |
 
-Codex notes use `type: codex-session` and filenames like `YYYY-MM-DD-codex-<id8>.md`. They live in the same `claude-conversation/` folder so Obsidian and QMD searches cover both agents.
+Codex notes use `type: codex-session` and filenames like `YYYY-MM-DD-codex-<unique-id-tail>.md`. Codex UUIDs share a timestamp prefix, so the exporter uses the tail of the ID to avoid collisions. They live in the same `claude-conversation/` folder so Obsidian and QMD searches cover both agents.
 
 ### `scripts/recall-day.py`
 
