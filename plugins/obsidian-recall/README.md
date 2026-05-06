@@ -1,6 +1,6 @@
 # obsidian-recall
 
-Claude Code plugin that syncs session transcripts to an Obsidian vault and recalls past work by date, topic, or graph. Every session end writes a metadata file; meaningful sessions get an auto-generated summary. `/recall` pulls context back in later.
+Claude Code and Codex setup that syncs session transcripts to an Obsidian vault and recalls past work by date, topic, or graph. Claude uses the plugin Stop hook; Codex uses `~/.codex/hooks.json` plus `~/.codex/hooks/session-end-obsidian-sync.md`.
 
 ## Layout
 
@@ -14,7 +14,8 @@ obsidian-recall/
 │   └── stop.md                  # Stop-event prompt hook: sync + quality-gated summary
 ├── skills/recall/SKILL.md       # auto-triggered skill for recall intents
 └── scripts/
-    ├── claude-sessions          # main CLI (sync/export/resume/note/close/log/list)
+    ├── claude-sessions          # Claude CLI (sync/export/resume/note/close/log/list)
+    ├── codex-sessions           # Codex CLI (sync/export from ~/.codex/sessions)
     ├── recall-day.py            # temporal recall from ~/.claude/projects JSONL
     ├── session-graph.py         # interactive pyvis graph of sessions × files
     └── extract-sessions.py      # dump user messages for QMD `sessions` collection
@@ -38,6 +39,12 @@ claude-sessions sync  ──►  ObsidianVault/claude-conversation/YYYY-MM-DD-<i
                                                           │
                                                           ▼
                                                      qmd update -c sessions
+
+Codex session (~/.codex/sessions/YYYY/MM/DD/rollout-...<id>.jsonl)
+        │
+        │  Codex Stop/session_end hook
+        ▼
+codex-sessions sync ───►  ObsidianVault/claude-conversation/YYYY-MM-DD-codex-<id8>.md
 ```
 
 Recall then reads either the raw JSONL (temporal/graph) or the QMD indexes (topic).
@@ -50,6 +57,7 @@ All scripts assume this vault layout — edit `VAULT_DIR` in `scripts/claude-ses
 - Session notes: `<vault>/claude-conversation/`
 - QMD sessions source: `<vault>/claude-sessions-qmd/`
 - Claude sessions source: `~/.claude/projects/`
+- Codex sessions source: `~/.codex/sessions/`
 
 ## Components
 
@@ -68,6 +76,17 @@ Primary interface. Subcommands:
 | `list [--active \| --all] [--json]` | List sessions. |
 
 Add `--all-projects` to operate across every project in `~/.claude/projects` instead of only the current one.
+
+### `scripts/codex-sessions` (CLI)
+
+Primary Codex exporter. Subcommands:
+
+| Command | Purpose |
+|---|---|
+| `sync [--session-id ID] [--transcript PATH] [--recent-minutes N]` | Create/update Codex session notes from recent Codex JSONL transcripts. Called by Codex hooks. |
+| `export (--today \| --all)` | Bulk-export Codex sessions to the vault. |
+
+Codex notes use `type: codex-session` and filenames like `YYYY-MM-DD-codex-<id8>.md`. They live in the same `claude-conversation/` folder so Obsidian and QMD searches cover both agents.
 
 ### `scripts/recall-day.py`
 
@@ -136,6 +155,27 @@ Auto-trigger skill — fires when the user says things like "recall", "what did 
 3. Create the `.venv` and install `networkx` + `pyvis` if you want graph mode.
 4. Install `qmd` and create `obsidian` + (optionally) `sessions` collections pointing at the vault and `claude-sessions-qmd/` dir.
 5. Edit `VAULT_DIR` in `scripts/claude-sessions` and the vault paths in `hooks/stop.md` if your Obsidian vault lives elsewhere.
-6. Enable the plugin — the Stop hook registers automatically via `hooks/stop.md`.
+6. Enable the plugin — the Claude Stop hook registers automatically via `hooks/stop.md`.
+7. For Codex, register the hook in `~/.codex/hooks.json`:
+
+```json
+{
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /Users/krushi/.claude-personal-plugins/plugins/obsidian-recall/scripts/codex-sessions --quiet --min-messages 1 sync --recent-minutes 240"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Also keep `~/.codex/hooks/session-end-obsidian-sync.md` with `trigger: session_end` for Codex installations that use markdown hook triggers.
 
 Once enabled, every session end writes a note; `/recall yesterday`, `/recall "authentication flow"`, and `/recall graph last week` exercise the three modes.
