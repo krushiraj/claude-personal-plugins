@@ -84,6 +84,12 @@ def clean_title(title: str) -> str:
     return title[:100] if title else "Untitled Session"
 
 
+def is_generated_context_title(title: str | None) -> bool:
+    if not title:
+        return True
+    return title.startswith("# AGENTS.md instructions") or title == "Untitled Session"
+
+
 def extract_text_blocks(content) -> str:
     if isinstance(content, str):
         return content
@@ -216,7 +222,9 @@ def output_path(session_id: str, date: str) -> Path:
 
 
 def generate_markdown(data: dict, existing_fm: dict | None, my_notes: str | None) -> str:
-    title = (existing_fm or {}).get("title") or data["title"] or "Untitled Session"
+    existing_title = (existing_fm or {}).get("title")
+    title = data["title"] if is_generated_context_title(existing_title) else existing_title
+    title = title or "Untitled Session"
     title_escaped = title.replace('"', '\\"')
     lines = [
         "---",
