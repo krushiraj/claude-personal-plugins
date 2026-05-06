@@ -59,6 +59,11 @@ def session_id_from_path(file_path: Path) -> str:
     return file_path.stem
 
 
+def short_session_id(session_id: str) -> str:
+    cleaned = session_id.replace("-", "")
+    return cleaned[-12:] if len(cleaned) >= 12 else cleaned
+
+
 def load_titles() -> dict[str, str]:
     titles = {}
     if not CODEX_INDEX.exists():
@@ -204,13 +209,13 @@ def extract_session_data(file_path: Path, titles: dict[str, str]) -> dict:
 
 
 def find_session_file(session_id: str) -> Path | None:
-    for file_path in OUTPUT_DIR.glob(f"*-codex-{session_id[:8]}.md"):
+    for file_path in OUTPUT_DIR.glob(f"*-codex-{short_session_id(session_id)}.md"):
         return file_path
     return None
 
 
 def output_path(session_id: str, date: str) -> Path:
-    return OUTPUT_DIR / f"{date}-codex-{session_id[:8]}.md"
+    return OUTPUT_DIR / f"{date}-codex-{short_session_id(session_id)}.md"
 
 
 def generate_markdown(data: dict, existing_fm: dict | None, my_notes: str | None) -> str:
