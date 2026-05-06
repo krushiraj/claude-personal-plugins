@@ -1,5 +1,5 @@
 {
   "name": "obsidian-recall",
   "version": "2.0.0",
-  "description": "Recall context from Obsidian vault and sync Claude sessions. Auto-saves session metadata on end, quality-gated summaries for meaningful conversations. CLI and slash commands for session management."
+  "description": "Recall context from Obsidian vault and sync Claude and Codex sessions. Auto-saves session metadata on end, quality-gated summaries for meaningful Claude conversations. CLI and slash commands for session management."
 }
