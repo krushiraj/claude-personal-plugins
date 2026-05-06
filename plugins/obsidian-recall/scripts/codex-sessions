@@ -186,10 +186,7 @@ def extract_session_data(file_path: Path, titles: dict[str, str]) -> dict:
         if record.get("type") == "response_item" and payload.get("type") == "message":
             role = payload.get("role")
             text = clean_content(extract_text_blocks(payload.get("content", [])))
-            if role == "user" and text and len(text) >= 5:
-                data["user_messages"].append(text)
-                data["messages"] += 1
-            elif role == "assistant" and text:
+            if role == "assistant" and text:
                 data["assistant_messages"].append(text)
 
         if record.get("type") == "event_msg" and payload.get("type") == "exec_command_end":
