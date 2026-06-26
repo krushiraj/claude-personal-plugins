@@ -15,6 +15,7 @@ const fs = require('fs');
 const { execFileSync } = require('child_process');
 const { parseReport } = require('../src/intake');
 const { writeCase } = require('../src/caseFile');
+const { parsePageStdout } = require('../src/parsePageStdout');
 
 const CASES_DIR = path.join(__dirname, '..', 'cases');
 
