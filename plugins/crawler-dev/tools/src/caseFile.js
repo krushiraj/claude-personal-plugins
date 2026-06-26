@@ -57,8 +57,7 @@ function renderMd(caseObj) {
 
 // Create the case folder, write case.json + case.md, return the folder path.
 function writeCase(baseDir, caseObj) {
-  const folderName = `${today()}-${safeName(caseObj)}`;
-  const folder = path.join(baseDir, folderName);
+  const folder = path.join(baseDir, folderName(caseObj));
   fs.mkdirSync(folder, { recursive: true });
   fs.writeFileSync(path.join(folder, 'case.json'), JSON.stringify(caseObj, null, 2) + '\n');
   fs.writeFileSync(path.join(folder, 'case.md'), renderMd(caseObj));
