@@ -1,6 +1,10 @@
 'use strict';
 
+const os = require('os');
+const path = require('path');
+const fs = require('fs');
 const { s3KeyFor, pickBackend } = require('../src/logAcquire');
+const { runLocalCrawler } = require('../bin/log-acquire');
 
 test('builds an S3 key that includes the build', () => {
   expect(s3KeyFor({ build: 'abc123', publisherUrl: 'https://x.org/a' })).toContain('abc123');
