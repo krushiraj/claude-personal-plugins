@@ -14,3 +14,19 @@ test('does not throw when slug is missing', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'case-'));
   expect(() => writeCase(dir, { mode: 'META' })).not.toThrow();
 });
+
+test('same slug + different doi -> two distinct folders', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'case-'));
+  const a = writeCase(dir, { slug: 'x.org-pdf', mode: 'PDF', doi: '10.1/aaa' });
+  const b = writeCase(dir, { slug: 'x.org-pdf', mode: 'PDF', doi: '10.1/bbb' });
+  expect(a).not.toBe(b);
+  expect(fs.existsSync(path.join(a, 'case.json'))).toBe(true);
+  expect(fs.existsSync(path.join(b, 'case.json'))).toBe(true);
+});
+
+test('same slug + same doi -> same folder (idempotent)', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'case-'));
+  const a = writeCase(dir, { slug: 'x.org-pdf', mode: 'PDF', doi: '10.1/aaa' });
+  const b = writeCase(dir, { slug: 'x.org-pdf', mode: 'PDF', doi: '10.1/aaa' });
+  expect(a).toBe(b);
+});
