@@ -118,11 +118,7 @@ const RULES = [
     errorClass: 'proxy-needed',
     siteKind: 'publisher-html',
     obtainable: { pdf: false, doi: null, abstract: null },
-    test: (text, ctx) =>
-      ctx.proxyUsed === false &&
-      (firstLine(text, RE_BLOCKED) ||
-        firstLine(text, RE_BLOCKED_URL) ||
-        firstLine(text, RE_HTTP_DENIED)),
+    test: (text, ctx) => ctx.proxyUsed === false && blockedEvidence(text),
   },
 
   // tips.md "Access Restricted Content" / Anubis / Cloudflare: a real block
@@ -131,10 +127,7 @@ const RULES = [
     errorClass: 'blocked-paywall',
     siteKind: 'publisher-html',
     obtainable: { pdf: false, doi: null, abstract: null },
-    test: (text) =>
-      firstLine(text, RE_BLOCKED) ||
-      firstLine(text, RE_BLOCKED_URL) ||
-      firstLine(text, RE_HTTP_DENIED),
+    test: (text) => blockedEvidence(text),
   },
 
   // tips.md "Network Issues": transport-level failure (timeout/DNS/abort/ECONN).
