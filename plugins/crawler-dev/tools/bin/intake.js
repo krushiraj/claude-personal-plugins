@@ -200,9 +200,13 @@ function main() {
   printCreated(folder, caseObj);
 }
 
-try {
-  main();
-} catch (err) {
-  console.error(`Error: ${(err && err.message) || err}`);
-  process.exit(1);
+if (require.main === module) {
+  try {
+    main();
+  } catch (err) {
+    console.error(`Error: ${(err && err.message) || err}`);
+    process.exit(1);
+  }
 }
+
+module.exports = { caseFromUrl, caseFromDoi, parseArgs };
