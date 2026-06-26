@@ -93,7 +93,7 @@ function main() {
   }
 
   const caseObj = readCase(folder);
-  const mode = normalizeMode(caseObj.mode);
+  const mode = canonicalMode(caseObj.mode);
   const url = caseObj.publisherUrl || caseObj.url;
   if (!url) throw new Error('case has no publisherUrl/url to crawl');
 
@@ -117,6 +117,14 @@ function main() {
     logPath = path.join(logsDir, `local.${mode}.log`);
     fs.writeFileSync(logPath, out);
     provenance = 'local';
+    // debugCrawler writes the fetched PDF as <url-with-\W->_>.pdf into its cwd
+    // (the shared repo) on a successful PDF crawl. Best-effort cleanup so we
+    // don't litter the shared repo; never throw if it isn't there.
+    try {
+      fs.unlinkSync(path.join(SHARED_DIR, `${url.replace(/\W/g, '_')}.pdf`));
+    } catch (e) {
+      /* no PDF produced (META crawl or failure) — nothing to clean up */
+    }
   }
 
   // 3) Persist provenance back onto the case IN PLACE (updateCase writes to the
