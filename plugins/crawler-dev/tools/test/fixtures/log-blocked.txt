@@ -1,0 +1,4 @@
+Crawling https://www.sciencedirect.com/science/article/pii/S0010482524000000 in PDF mode
+CrawlerLogging:
+ { type: 'log', message: 'CRAWLER_FAILED: No URL worked', level: 'error' }
+Crawler failed: { errors: [ 'BLOCKED' ], blockedUrl: 'https://www.sciencedirect.com/science/article/pii/S0010482524000000' }
