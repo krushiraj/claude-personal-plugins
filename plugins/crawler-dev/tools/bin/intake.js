@@ -18,6 +18,7 @@ const { parseReport } = require('../src/intake');
 const { writeCase } = require('../src/caseFile');
 const { parsePageStdout } = require('../src/parsePageStdout');
 const { parseReportRows } = require('../src/fetchReports');
+const { summarize } = require('../src/summarize');
 
 const CASES_DIR = path.join(__dirname, '..', 'cases');
 const REPORTS_DB_ID = '0e0cafa5-d636-4e04-a6f3-07abf7e6b653';
