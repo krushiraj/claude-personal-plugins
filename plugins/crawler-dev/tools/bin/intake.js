@@ -115,8 +115,55 @@ function caseFromPage(pageId) {
   return caseObj;
 }
 
+// Fetch + parse a single Notion report row and write its case folder.
+// Shared by --page and --sweep-new. Returns { folder, caseObj }.
+function intakePage(pageId) {
+  const caseObj = caseFromPage(pageId);
+  const folder = writeCase(CASES_DIR, caseObj);
+  return { folder, caseObj };
+}
+
+// Query the reports DB for rows in the given status and return [{ id }].
+function fetchReportRows(status) {
+  const script = path.join(__dirname, 'fetch-reports.sh');
+  const token = notionToken();
+  const stdout = execFileSync('bash', [script, token, REPORTS_DB_ID, status], {
+    encoding: 'utf8',
+    maxBuffer: 32 * 1024 * 1024,
+  });
+  return parseReportRows(stdout);
+}
+
+// Intake every report row in the given status, resilient to per-row failures.
+function sweep(status) {
+  const rows = fetchReportRows(status);
+  const created = [];
+  let skipped = 0;
+
+  for (const row of rows) {
+    try {
+      const { folder } = intakePage(row.id);
+      created.push(folder);
+    } catch (err) {
+      skipped++;
+      console.error(`skip ${row.id}: ${(err && err.message) || err}`);
+    }
+  }
+
+  console.log(
+    `Swept ${rows.length} ${status} reports -> ${created.length} cases written, ${skipped} skipped`
+  );
+  for (const folder of created) console.log(`  ${folder}`);
+}
+
 function main() {
   const args = parseArgs(process.argv.slice(2));
+
+  if (args['sweep-new']) {
+    const status = typeof args['sweep-new'] === 'string' ? args['sweep-new'] : 'New';
+    sweep(status);
+    return;
+  }
 
   let caseObj;
   if (args.url && typeof args.url === 'string') {
@@ -124,9 +171,14 @@ function main() {
   } else if (args.doi && typeof args.doi === 'string') {
     caseObj = caseFromDoi(args.doi, args.mode);
   } else if (args.page && typeof args.page === 'string') {
-    caseObj = caseFromPage(args.page);
+    const { folder, caseObj: pageCase } = intakePage(args.page);
+    console.log(`Created: ${folder}`);
+    console.log(
+      `  ${pageCase.slug || '(no slug)'} | mode=${pageCase.mode} | ${pageCase.publisherUrl || pageCase.url || ''}`
+    );
+    return;
   } else {
-    console.error('Error: provide one of --url, --doi, or --page.\n');
+    console.error('Error: provide one of --url, --doi, --page, or --sweep-new.\n');
     console.error(USAGE);
     process.exit(1);
   }
