@@ -10,6 +10,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -20,6 +21,19 @@ function safeName(caseObj) {
   const raw = (caseObj && caseObj.slug)
     || `unknown-${(caseObj && caseObj.mode && String(caseObj.mode).toLowerCase()) || 'case'}`;
   return String(raw).replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'unknown-case';
+}
+
+// Folder name: <date>-<slug>-<hash8>. The slug clusters by publisher+mode, but
+// distinct reports sharing a slug must not collide, so we append an 8-hex sha1
+// of the most specific identity on the case. Same identity -> same folder
+// (idempotent / correct dedup); different identity -> different folder. With no
+// identity available, fall back to the plain <date>-<slug> name.
+function folderName(caseObj) {
+  const base = `${today()}-${safeName(caseObj)}`;
+  const identity = (caseObj && (caseObj.doi || caseObj.publisherUrl || caseObj.url)) || '';
+  if (!identity) return base;
+  const hash8 = crypto.createHash('sha1').update(String(identity)).digest('hex').slice(0, 8);
+  return `${base}-${hash8}`;
 }
 
 function renderMd(caseObj) {
