@@ -91,12 +91,14 @@ function notionToken() {
 }
 
 // Fetch a Notion row via the shared script and shape it for parseReport.
-function caseFromPage(pageId) {
+// Accepts an optional pre-read token so a sweep need not re-read the settings
+// file once per row.
+function caseFromPage(pageId, token) {
   const script = path.join(
     __dirname, '..', '..', '..', 'notion-cards', 'scripts', 'fetch-card-content.sh'
   );
-  const token = notionToken();
-  const stdout = execFileSync('bash', [script, token, pageId], {
+  const tok = token || notionToken();
+  const stdout = execFileSync('bash', [script, tok, pageId], {
     encoding: 'utf8',
     maxBuffer: 32 * 1024 * 1024,
   });
