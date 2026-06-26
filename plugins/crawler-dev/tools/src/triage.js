@@ -61,31 +61,85 @@ function cell(value) {
   return String(value == null ? '' : value).replace(/\|/g, '\\|');
 }
 
-// renderBoard(clusters) -> markdown triage board string.
+// The representative diagnosis for a cluster (its first member's).
+function repDiagnosis(cluster) {
+  const first = cluster && cluster.cases && cluster.cases[0];
+  return (first && first.diagnosis) || {};
+}
+
+// Compact "what can we still get?" hint from a diagnosis's obtainable map, e.g.
+// `pdf:false`. Drops null/undefined fields; all-unknown -> '-'.
+function obtainableHint(diag) {
+  const o = diag && diag.obtainable;
+  if (!o || typeof o !== 'object') return '-';
+  const parts = Object.keys(o)
+    .filter((k) => o[k] !== null && o[k] !== undefined)
+    .map((k) => `${k}:${o[k]}`);
+  return parts.length ? parts.join(' ') : '-';
+}
+
+// A short inline evidence snippet (backticks stripped so it can't break the md).
+function evidenceSnippet(diag) {
+  const ev = diag && diag.evidence;
+  if (!ev) return '';
+  return String(ev).replace(/`/g, '').replace(/\s+/g, ' ').trim().slice(0, 120);
+}
+
+// A member label for the cluster-members list: folder name preferred, then a
+// stable identifier, so the user can act on every case in the cluster.
+function memberLabel(caseObj) {
+  const c = caseObj || {};
+  return c.folder || c.slug || exampleOf(c) || '(case)';
+}
+
+const MAX_MEMBERS_SHOWN = 8;
+
+// renderBoard(clusters) -> markdown triage board string. The table is the
+// at-a-glance "fix once, close many" view; the per-cluster members section below
+// it carries the actionable payload (every member + an obtainable/evidence hint).
 function renderBoard(clusters) {
   const list = Array.isArray(clusters) ? clusters : [];
   const totalCases = list.reduce((sum, c) => sum + (c.count || 0), 0);
   const totalClusters = list.length;
+
+  // Already sorted by clusterCases, but render is robust if handed raw clusters.
+  const sorted = [...list].sort(
+    (a, b) => (b.count || 0) - (a.count || 0) || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0)
+  );
 
   const lines = [];
   lines.push('# Crawler Triage Board');
   lines.push('');
   lines.push(`${totalCases} cases in ${totalClusters} clusters (fix once, close many).`);
   lines.push('');
-  lines.push('| Count | Domain | Error Class | Mode | Example |');
-  lines.push('| ----- | ------ | ----------- | ---- | ------- |');
-
-  // Already sorted by clusterCases, but render is robust if handed raw clusters.
-  const sorted = [...list].sort(
-    (a, b) => (b.count || 0) - (a.count || 0) || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0)
-  );
+  lines.push('| Count | Domain | Error Class | Mode | Obtainable | Example |');
+  lines.push('| ----- | ------ | ----------- | ---- | ---------- | ------- |');
   for (const c of sorted) {
     const example = exampleOf((c.cases && c.cases[0]) || {});
     lines.push(
-      `| ${cell(c.count)} | ${cell(c.domain)} | ${cell(c.errorClass)} | ${cell(c.mode)} | ${cell(example)} |`
+      `| ${cell(c.count)} | ${cell(c.domain)} | ${cell(c.errorClass)} | ${cell(c.mode)} | ${cell(obtainableHint(repDiagnosis(c)))} | ${cell(example)} |`
     );
   }
   lines.push('');
+
+  if (sorted.length) {
+    lines.push('## Cluster members');
+    lines.push('');
+    for (const c of sorted) {
+      const diag = repDiagnosis(c);
+      const ev = evidenceSnippet(diag);
+      lines.push(
+        `- **${c.key}** (${c.count}) — obtainable ${obtainableHint(diag)}` +
+          (ev ? ` — evidence: \`${ev}\`` : '')
+      );
+      const members = (c.cases || []).map(memberLabel);
+      const shown = members.slice(0, MAX_MEMBERS_SHOWN);
+      const more = members.length > shown.length ? ` (+${members.length - shown.length} more)` : '';
+      lines.push(`  - ${shown.join(', ')}${more}`);
+    }
+    lines.push('');
+  }
+
   return lines.join('\n');
 }
 
