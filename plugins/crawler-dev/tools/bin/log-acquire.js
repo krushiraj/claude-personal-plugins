@@ -19,15 +19,15 @@ const fs = require('fs');
 const { execFileSync, spawnSync } = require('child_process');
 const { readCase, updateCase } = require('../src/caseFile');
 const { s3KeyFor, pickBackend } = require('../src/logAcquire');
+const { canonicalMode } = require('../src/modes');
 
 const CASES_DIR = path.join(__dirname, '..', 'cases');
-const SHARED_DIR = '/Users/krushi/work/paperpile/js/shared';
+// Where the shared package (with debugCrawler) lives; overridable via env.
+const SHARED_DIR =
+  process.env.GURU_DIR ||
+  process.env.CRAWLER_SHARED_DIR ||
+  '/Users/krushi/work/paperpile/js/shared';
 const MAX_BUFFER = 64 * 1024 * 1024;
-
-function normalizeMode(mode) {
-  const m = (mode && String(mode).toUpperCase()) || 'PDF';
-  return m === 'META' ? 'META' : 'PDF';
-}
 
 // Is the `aws` CLI available on PATH?
 function awsAvailable() {
