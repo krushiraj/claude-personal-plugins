@@ -49,3 +49,22 @@ test('renderBoard handles empty clusters without throwing', () => {
   const md = renderBoard([]);
   expect(md).toMatch(/0 cases/);
 });
+
+test('renderBoard lists every cluster member folder + an obtainable/evidence hint', () => {
+  const diagnosis = {
+    errorClass: 'referer-required',
+    obtainable: { pdf: false, doi: null, abstract: null },
+    evidence: '403 on .pdf',
+  };
+  const cases = [
+    { folder: '2026-06-26-a.com-pdf-1111', domain: 'a.com', mode: 'PDF', diagnosis },
+    { folder: '2026-06-26-a.com-pdf-2222', domain: 'a.com', mode: 'PDF', diagnosis },
+  ];
+  const md = renderBoard(clusterCases(cases));
+  // every member folder is listed so the user can act on the whole cluster
+  expect(md).toMatch(/2026-06-26-a\.com-pdf-1111/);
+  expect(md).toMatch(/2026-06-26-a\.com-pdf-2222/);
+  // compact diagnosis hints surfaced
+  expect(md).toMatch(/pdf:false/);
+  expect(md).toMatch(/403 on \.pdf/);
+});
