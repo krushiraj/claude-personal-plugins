@@ -1,0 +1,7 @@
+{
+  "name": "crawler-fix-loop-tools",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": { "test": "jest --passWithNoTests" },
+  "devDependencies": { "jest": "^29.7.0" }
+}
