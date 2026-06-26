@@ -7,6 +7,7 @@
 //   --url  <u>            minimal case from a publisher/PDF URL
 //   --doi  <d>            minimal case from a DOI (url -> https://doi.org/<d>)
 //   --page <notionId>     fetch the Notion crawler-report row and parse it
+//   --sweep-new [status]  intake every report row in the given status (default New)
 //
 // Optional: --mode PDF|META  (default PDF; ignored for --page, which carries its own).
 
@@ -16,13 +17,16 @@ const { execFileSync } = require('child_process');
 const { parseReport } = require('../src/intake');
 const { writeCase } = require('../src/caseFile');
 const { parsePageStdout } = require('../src/parsePageStdout');
+const { parseReportRows } = require('../src/fetchReports');
 
 const CASES_DIR = path.join(__dirname, '..', 'cases');
+const REPORTS_DB_ID = '0e0cafa5-d636-4e04-a6f3-07abf7e6b653';
 
 const USAGE = `Usage:
   node bin/intake.js --url <publisherUrl> [--mode PDF|META]
   node bin/intake.js --doi <doi> [--mode PDF|META]
-  node bin/intake.js --page <notionPageId>`;
+  node bin/intake.js --page <notionPageId>
+  node bin/intake.js --sweep-new [status]`;
 
 // Tiny flag parser: --key value pairs into a plain object.
 function parseArgs(argv) {
