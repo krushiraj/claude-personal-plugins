@@ -58,26 +58,19 @@ function tryS3(caseObj) {
   }
 }
 
-// Re-run the crawler locally and capture stdout+stderr. A non-zero exit (the
-// crawler failing) is NOT an error for us — we return its captured output.
-function runLocalCrawler(url, mode) {
-  try {
-    const out = execFileSync('yarn', ['crawler:debug', url, mode], {
-      cwd: SHARED_DIR,
-      encoding: 'utf8',
-      maxBuffer: MAX_BUFFER,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-    return out;
-  } catch (e) {
-    // Non-zero exit: stitch together whatever was captured so the failure log is
-    // preserved. If nothing was captured, surface the spawn error message.
-    const parts = [];
-    if (e.stdout) parts.push(e.stdout.toString());
-    if (e.stderr) parts.push(e.stderr.toString());
-    if (!parts.length) parts.push(`crawler:debug could not run: ${(e && e.message) || e}`);
-    return parts.join('\n');
-  }
+// Re-run the crawler locally and capture stdout+stderr. spawnSync (not
+// execFileSync) so we ALWAYS get both streams regardless of exit code —
+// crawler:debug logs to stderr too, and a passing crawl's log would otherwise be
+// nearly empty. A non-zero exit (the crawler failing) is NOT an error for us.
+// `cmd`/`args` are injectable to make this testable with a tiny fake script.
+function runLocalCrawler(url, mode, cmd = 'yarn', args) {
+  const argv = args || ['crawler:debug', url, mode];
+  const r = spawnSync(cmd, argv, { cwd: SHARED_DIR, encoding: 'utf8', maxBuffer: MAX_BUFFER });
+  const parts = [];
+  if (r.stdout) parts.push(r.stdout);
+  if (r.stderr) parts.push(r.stderr);
+  if (!parts.length && r.error) parts.push(`crawler:debug could not run: ${r.error.message}`);
+  return parts.join('\n');
 }
 
 function main() {
