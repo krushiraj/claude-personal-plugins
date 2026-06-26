@@ -8,6 +8,8 @@
 // The input is a page shaped like { properties: {...}, _blocks: [ <block> ] }.
 // Every field may be missing; this function must never throw.
 
+const { canonicalMode } = require('./modes');
+
 // Hosts that are NOT the real publisher (resolver / index links).
 function isPublisherHost(host) {
   if (!host) return false;
