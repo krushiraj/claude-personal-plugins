@@ -16,8 +16,8 @@
 
 const path = require('path');
 const fs = require('fs');
-const { execFileSync } = require('child_process');
-const { readCase, writeCase } = require('../src/caseFile');
+const { execFileSync, spawnSync } = require('child_process');
+const { readCase, updateCase } = require('../src/caseFile');
 const { s3KeyFor, pickBackend } = require('../src/logAcquire');
 
 const CASES_DIR = path.join(__dirname, '..', 'cases');
