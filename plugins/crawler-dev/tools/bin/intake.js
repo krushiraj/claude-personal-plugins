@@ -134,4 +134,9 @@ function main() {
   );
 }
 
-main();
+try {
+  main();
+} catch (err) {
+  console.error(`Error: ${(err && err.message) || err}`);
+  process.exit(1);
+}
