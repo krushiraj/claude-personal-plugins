@@ -2,6 +2,9 @@
 # Query the crawler-reports Notion DB by Status.
 # Usage: fetch-reports.sh <token> <database_id> [status]
 # Prints the raw JSON response from the Notion query API.
+#
+# NOTE: the reports DB "Status" property is a `select` (not a `status`)
+# property, so the filter uses `select`/`equals`.
 
 set -e
 
