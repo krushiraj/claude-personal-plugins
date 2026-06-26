@@ -24,6 +24,18 @@ test('falls back to the URL field when pub.url has no publisher link', () => {
   expect(c.mode).toBe('META');
 });
 
+test('canonicalizes the "Metadata" Type label to META (not PDF)', () => {
+  const c = parseReport({
+    properties: {
+      URL: { url: 'https://x.org/a' },
+      Type: { select: { name: 'Metadata' } },
+    },
+    _blocks: [],
+  });
+  expect(c.mode).toBe('META');
+  expect(c.slug).toBe('x.org-meta');
+});
+
 test('never throws on undefined or empty input', () => {
   const fromUndefined = parseReport(undefined);
   expect(typeof fromUndefined).toBe('object');
