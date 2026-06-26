@@ -8,6 +8,7 @@
 //   --doi  <d>            minimal case from a DOI (url -> https://doi.org/<d>)
 //   --page <notionId>     fetch the Notion crawler-report row and parse it
 //   --sweep-new [status]  intake every report row in the given status (default New)
+//                         supports --limit N to cap how many rows are processed
 //
 // Optional: --mode PDF|META  (default PDF; ignored for --page, which carries its own).
 
