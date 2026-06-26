@@ -98,9 +98,10 @@ function main() {
   const logsDir = path.join(folder, 'logs');
   fs.mkdirSync(logsDir, { recursive: true });
 
-  // 1) Try S3.
+  // 1) Try S3. An empty/whitespace object is a MISS, not a spurious 's3' hit.
   const s3Blob = tryS3(caseObj);
-  const backend = pickBackend({ s3Available: s3Blob != null });
+  const s3Hit = !!(s3Blob && s3Blob.trim());
+  const backend = pickBackend({ s3Available: s3Hit });
 
   let provenance;
   let logPath;
@@ -116,22 +117,26 @@ function main() {
     provenance = 'local';
   }
 
-  // 3) Persist provenance back onto the case. writeCase is keyed by identity, so
-  // this lands in the SAME folder.
+  // 3) Persist provenance back onto the case IN PLACE (updateCase writes to the
+  // exact folder we read, never a date-recomputed one). Store an absolute path
+  // so downstream tools resolving it from another cwd don't break.
   caseObj.logs = {
     provenance,
-    path: logPath,
+    path: path.resolve(logPath),
     acquiredAt: new Date().toISOString(),
   };
-  // Write back next to where we read it (keyed by identity -> same folder).
-  writeCase(path.dirname(path.resolve(folder)), caseObj);
+  updateCase(folder, caseObj);
 
   console.log(`logs: ${provenance} -> ${logPath}`);
 }
 
-try {
-  main();
-} catch (err) {
-  console.error(`Error: ${(err && err.message) || err}`);
-  process.exit(1);
+if (require.main === module) {
+  try {
+    main();
+  } catch (err) {
+    console.error(`Error: ${(err && err.message) || err}`);
+    process.exit(1);
+  }
 }
+
+module.exports = { runLocalCrawler };
