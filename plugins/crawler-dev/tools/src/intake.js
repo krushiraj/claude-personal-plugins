@@ -25,10 +25,12 @@ function hostOf(url) {
   }
 }
 
-// Read the first rich_text plain_text value, or undefined.
+// Join all rich_text plain_text segments, or undefined when empty.
 function richText(prop) {
   const arr = prop && prop.rich_text;
-  if (Array.isArray(arr) && arr.length > 0) return arr[0].plain_text;
+  if (Array.isArray(arr) && arr.length > 0) {
+    return arr.map((t) => (t && t.plain_text) || '').join('');
+  }
   return undefined;
 }
 

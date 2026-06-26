@@ -23,3 +23,22 @@ test('falls back to the URL field when pub.url has no publisher link', () => {
   expect(c.domain).toBe('x.org');
   expect(c.mode).toBe('META');
 });
+
+test('never throws on undefined or empty input', () => {
+  const fromUndefined = parseReport(undefined);
+  expect(typeof fromUndefined).toBe('object');
+  expect(fromUndefined.proxyUsed).toBe(false);
+
+  const fromEmpty = parseReport({});
+  expect(typeof fromEmpty).toBe('object');
+  expect(fromEmpty.proxyUsed).toBe(false);
+});
+
+test('tolerates a code block with malformed JSON rich_text', () => {
+  const c = parseReport({
+    properties: {},
+    _blocks: [{ type: 'code', code: { rich_text: [{ plain_text: 'not json {' }] } }],
+  });
+  expect(c.expectedPub).toBeUndefined();
+  expect(c.doi).toBeUndefined();
+});
