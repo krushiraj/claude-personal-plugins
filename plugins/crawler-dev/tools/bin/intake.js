@@ -27,7 +27,7 @@ const USAGE = `Usage:
   node bin/intake.js --url <publisherUrl> [--mode PDF|META]
   node bin/intake.js --doi <doi> [--mode PDF|META]
   node bin/intake.js --page <notionPageId>
-  node bin/intake.js --sweep-new [status]`;
+  node bin/intake.js --sweep-new [status] [--limit N]`;
 
 // Tiny flag parser: --key value pairs into a plain object.
 function parseArgs(argv) {
