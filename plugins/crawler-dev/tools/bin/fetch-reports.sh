@@ -21,4 +21,4 @@ curl -s -X POST "https://api.notion.com/v1/databases/${DATABASE_ID}/query" \
   -H "Authorization: Bearer ${TOKEN}" \
   -H "Notion-Version: 2022-06-28" \
   -H "Content-Type: application/json" \
-  -d "{\"filter\": {\"property\": \"Status\", \"status\": {\"equals\": \"${STATUS}\"}}, \"page_size\": 100}"
+  -d "{\"filter\": {\"property\": \"Status\", \"select\": {\"equals\": \"${STATUS}\"}}, \"page_size\": 100}"
