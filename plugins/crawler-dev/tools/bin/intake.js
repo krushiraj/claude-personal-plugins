@@ -96,25 +96,17 @@ function caseFromPage(pageId) {
     maxBuffer: 32 * 1024 * 1024,
   });
 
-  const idx = stdout.indexOf('---BLOCKS---');
-  const pagePart = idx === -1 ? stdout : stdout.slice(0, idx);
-  const blocksPart = idx === -1 ? '' : stdout.slice(idx + '---BLOCKS---'.length);
+  const page = parsePageStdout(stdout);
+  const caseObj = parseReport(page);
 
-  const page = JSON.parse(pagePart.trim());
-  const _blocks = blocksPart
-    .split('\n')
-    .map((l) => l.trim())
-    .filter((l) => l && l.startsWith('{'))
-    .map((l) => {
-      try {
-        return JSON.parse(l);
-      } catch (e) {
-        return null;
-      }
-    })
-    .filter(Boolean);
+  // Notion returns an error body with HTTP 200 for a bad id, so parsing
+  // "succeeds" into an empty case. Reject anything lacking the essentials.
+  if (!caseObj.mode && !caseObj.expectedPub && !caseObj.url && !caseObj.publisherUrl) {
+    throw new Error(
+      `could not parse Notion page ${pageId} (no mode/url/publication found — bad id or not a crawler-report row?)`
+    );
+  }
 
-  const caseObj = parseReport({ properties: page.properties, _blocks });
   caseObj.status = caseObj.status || 'intake';
   return caseObj;
 }
