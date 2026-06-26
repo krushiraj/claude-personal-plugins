@@ -1,0 +1,30 @@
+Crawling https://linkinghub.elsevier.com/retrieve/pii/S0264410X26004676 in PDF mode
+CrawlerLogging:
+ {
+  type: 'log',
+  message: 'Blocked by Cloudflare captcha',
+  level: 'error'
+}
+
+
+CrawlerLogging:
+ {
+  type: 'log',
+  message: 'FETCH_FAILED: Blocked by Cloudflare',
+  level: 'error'
+}
+
+
+CrawlerLogging:
+ {
+  type: 'log',
+  message: 'CRAWLER_FAILED: No URL worked',
+  level: 'error'
+}
+
+
+Crawler failed: {
+  errors: [ 'BLOCKED' ],
+  blockedUrl: 'https://www.sciencedirect.com/science/article/pii/S0264410X26004676?via%3Dihub'
+}
+Done in 14.37s.
