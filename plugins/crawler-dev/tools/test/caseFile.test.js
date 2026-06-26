@@ -1,5 +1,5 @@
 const os = require('os'); const path = require('path'); const fs = require('fs');
-const { writeCase, readCase } = require('../src/caseFile');
+const { writeCase, updateCase, readCase } = require('../src/caseFile');
 
 test('writes and reads back a case folder', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'case-'));
