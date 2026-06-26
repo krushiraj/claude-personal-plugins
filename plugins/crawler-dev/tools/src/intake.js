@@ -11,7 +11,7 @@
 // Hosts that are NOT the real publisher (resolver / index links).
 function isPublisherHost(host) {
   if (!host) return false;
-  if (host === 'doi.org' || host === 'dx.doi.org') return false;
+  if (host.endsWith('doi.org')) return false;
   if (host.includes('ncbi.nlm.nih.gov')) return false;
   return true;
 }
