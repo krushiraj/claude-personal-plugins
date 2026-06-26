@@ -82,7 +82,7 @@ function notionToken() {
   const text = fs.readFileSync(file, 'utf8');
   const line = text.split('\n').find((l) => l.includes('notion_token'));
   if (!line) throw new Error(`notion_token not found in ${file}`);
-  return line.replace(/.*:\s*/, '').trim();
+  return line.replace(/.*:\s*/, '').trim().replace(/^["']|["']$/g, '');
 }
 
 // Fetch a Notion row via the shared script and shape it for parseReport.
