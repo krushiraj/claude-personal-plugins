@@ -82,6 +82,68 @@ test('Anubis proof-of-work block -> blocked-paywall', () => {
   );
 });
 
+// --- Review regression tests (false-positive fixes) ---
+
+// #7: real multi-line pretty-printed `Crawler failed: {\n ... }` block.
+test('real linkinghub.elsevier multi-line BLOCKED log -> blocked-paywall', () => {
+  expect(
+    classify(read('log-real-blocked.txt'), { mode: 'PDF', proxyUsed: true })
+      .errorClass
+  ).toBe('blocked-paywall');
+  expect(classify(read('log-real-blocked.txt'), { mode: 'PDF' }).errorClass).toBe(
+    'blocked-paywall'
+  );
+});
+
+// #2: a byte count "(403 bytes)" must NOT look like an HTTP 403 block.
+test('byte count 403 is not blocked', () => {
+  const r = classify('Fetched 200 OK text/html (403 bytes)', { mode: 'PDF' });
+  expect(r.errorClass).not.toBe('blocked-paywall');
+  expect(r.errorClass).not.toBe('proxy-needed');
+});
+
+// #3: a body dump echoing "paywall" must still classify as selector-drift.
+test('selector-drift body dump containing "paywall" stays selector-drift', () => {
+  const log = [
+    'Crawling https://repo.example.edu/items/x in PDF mode',
+    "CrawlerLogging: { message: 'Fetched 200 OK text/html (51221 bytes)', level: 'log' }",
+    "CrawlerLogging: { message: 'body: ...read this article via paywall or institutional login...', level: 'log' }",
+    "CrawlerLogging: { message: 'JqMeta: no citation_pdf_url found on page', level: 'warn' }",
+    "Crawler failed: { errors: [ 'CRAWLER_FAILED' ], blockedUrl: null }",
+  ].join('\n');
+  expect(classify(log, { mode: 'PDF' }).errorClass).toBe('selector-drift');
+});
+
+// #4: lone "Please enable JavaScript" boilerplate must NOT be js-rendered.
+test('"Please enable JavaScript" alone is not js-rendered', () => {
+  expect(
+    classify('Please enable JavaScript to view', { mode: 'PDF' }).errorClass
+  ).not.toBe('js-rendered');
+});
+
+// #5: word-boundary so "node"/"cannot" don't trip the JqMeta selector rule.
+test('JqMeta "node"/"cannot" lines are not selector-drift', () => {
+  expect(classify('JqMeta parsed 1 node fine', { mode: 'PDF' }).errorClass).not.toBe(
+    'selector-drift'
+  );
+  expect(
+    classify('JqMeta: cannot reach downloader', { mode: 'PDF' }).errorClass
+  ).not.toBe('selector-drift');
+});
+
+// #6: Anubis without an explicit BLOCKED marker still clusters as blocked.
+test('Anubis challenge without BLOCKED marker -> blocked-paywall', () => {
+  expect(
+    classify('Detected Anubis proof-of-work challenge', { mode: 'PDF' }).errorClass
+  ).toBe('blocked-paywall');
+  expect(
+    classify('Detected Anubis proof-of-work challenge', {
+      mode: 'PDF',
+      proxyUsed: false,
+    }).errorClass
+  ).toBe('proxy-needed');
+});
+
 test('shape: always returns the documented keys', () => {
   const r = classify(read('log-network.txt'), { mode: 'PDF' });
   expect(r).toHaveProperty('errorClass');
