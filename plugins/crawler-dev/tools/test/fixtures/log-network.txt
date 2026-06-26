@@ -1,0 +1,6 @@
+Crawling https://example.org/article/123 in PDF mode
+CrawlerLogging:
+ { type: 'log', message: 'FETCH_FAILED: The user aborted a request.', level: 'error' }
+CrawlerLogging:
+ { type: 'log', message: 'CRAWLER_FAILED: No URL worked', level: 'error' }
+Crawler failed: { errors: [ 'CRAWLER_FAILED' ], blockedUrl: null }
