@@ -58,13 +58,8 @@ function hostOf(url) {
   }
 }
 
-function normalizeMode(mode) {
-  const m = (mode && String(mode).toUpperCase()) || 'PDF';
-  return m === 'META' ? 'META' : 'PDF';
-}
-
 function caseFromUrl(url, mode) {
-  const m = normalizeMode(mode);
+  const m = canonicalMode(mode);
   const domain = hostOf(url);
   return {
     url,
