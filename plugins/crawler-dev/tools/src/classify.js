@@ -138,7 +138,8 @@ const RULES = [
     test: (text) => firstLine(text, RE_NETWORK),
   },
 
-  // tips.md "PDF Behind JavaScript" / DSpace 7 SPA / Anubis: needs a browser.
+  // tips.md "PDF Behind JavaScript" / DSpace 7 SPA: needs a browser. (Anti-bot
+  // interstitials like Anubis/Cloudflare are NOT here — they cluster as blocked.)
   // Ordered before selector-drift: a JS shell is a more specific cause of
   // "extraction found nothing" than a stale selector.
   {
