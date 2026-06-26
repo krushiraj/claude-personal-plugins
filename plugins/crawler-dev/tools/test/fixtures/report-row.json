@@ -1,0 +1,222 @@
+{
+  "properties": {
+    "Extension Build": {
+      "id": "%3At%5CX",
+      "type": "rich_text",
+      "rich_text": [
+        {
+          "type": "text",
+          "text": {
+            "content": "2d46353c99818da9c2101fda6007678c5b33ccc3",
+            "link": null
+          },
+          "annotations": {
+            "bold": false,
+            "italic": false,
+            "strikethrough": false,
+            "underline": false,
+            "code": false,
+            "color": "default"
+          },
+          "plain_text": "2d46353c99818da9c2101fda6007678c5b33ccc3",
+          "href": null
+        }
+      ]
+    },
+    "PP_ENV": {
+      "id": "%3De%40X",
+      "type": "select",
+      "select": {
+        "id": "_ygw",
+        "name": "Production",
+        "color": "red"
+      }
+    },
+    "User Name": {
+      "id": "BHTF",
+      "type": "rich_text",
+      "rich_text": [
+        {
+          "type": "text",
+          "text": {
+            "content": "yao paomian",
+            "link": null
+          },
+          "annotations": {
+            "bold": false,
+            "italic": false,
+            "strikethrough": false,
+            "underline": false,
+            "code": false,
+            "color": "default"
+          },
+          "plain_text": "yao paomian",
+          "href": null
+        }
+      ]
+    },
+    "Type": {
+      "id": "DCX%5D",
+      "type": "select",
+      "select": {
+        "id": "^\\Nl",
+        "name": "PDF",
+        "color": "yellow"
+      }
+    },
+    "User Email": {
+      "id": "FvJ%60",
+      "type": "email",
+      "email": "hlyao@surgery.cuhk.edu.hk"
+    },
+    "Extension Version": {
+      "id": "Pf%5DZ",
+      "type": "rich_text",
+      "rich_text": [
+        {
+          "type": "text",
+          "text": {
+            "content": "1.5.1114",
+            "link": null
+          },
+          "annotations": {
+            "bold": false,
+            "italic": false,
+            "strikethrough": false,
+            "underline": false,
+            "code": false,
+            "color": "default"
+          },
+          "plain_text": "1.5.1114",
+          "href": null
+        }
+      ]
+    },
+    "Date": {
+      "id": "UzjB",
+      "type": "date",
+      "date": {
+        "start": "2026-06-26",
+        "end": null,
+        "time_zone": null
+      }
+    },
+    "Browser": {
+      "id": "%5CE%7Cp",
+      "type": "rich_text",
+      "rich_text": [
+        {
+          "type": "text",
+          "text": {
+            "content": "chrome",
+            "link": null
+          },
+          "annotations": {
+            "bold": false,
+            "italic": false,
+            "strikethrough": false,
+            "underline": false,
+            "code": false,
+            "color": "default"
+          },
+          "plain_text": "chrome",
+          "href": null
+        }
+      ]
+    },
+    "Proxy Used": {
+      "id": "%5CrkK",
+      "type": "checkbox",
+      "checkbox": false
+    },
+    "URL": {
+      "id": "%60Ehn",
+      "type": "url",
+      "url": "http://dx.doi.org/10.1016/j.vaccine.2026.128659"
+    },
+    "Status": {
+      "id": "heem",
+      "type": "select",
+      "select": {
+        "id": "I>UO",
+        "name": "New",
+        "color": "red"
+      }
+    },
+    "Tested": {
+      "id": "k%3FcT",
+      "type": "checkbox",
+      "checkbox": false
+    },
+    "Report": {
+      "id": "title",
+      "type": "title",
+      "title": [
+        {
+          "type": "text",
+          "text": {
+            "content": "Report from yao paomian on 2026-06-26",
+            "link": null
+          },
+          "annotations": {
+            "bold": false,
+            "italic": false,
+            "strikethrough": false,
+            "underline": false,
+            "code": false,
+            "color": "default"
+          },
+          "plain_text": "Report from yao paomian on 2026-06-26",
+          "href": null
+        }
+      ]
+    }
+  },
+  "_blocks": [
+    {
+      "object": "block",
+      "id": "38ba2652-8ba2-813b-a156-fc33138681ff",
+      "parent": {
+        "type": "page_id",
+        "page_id": "38ba2652-8ba2-8103-aa83-e344fd7557eb"
+      },
+      "created_time": "2026-06-26T06:46:00.000Z",
+      "last_edited_time": "2026-06-26T06:46:00.000Z",
+      "created_by": {
+        "object": "user",
+        "id": "6ae725b0-6edb-4c99-bb0b-d32e410ea26a"
+      },
+      "last_edited_by": {
+        "object": "user",
+        "id": "6ae725b0-6edb-4c99-bb0b-d32e410ea26a"
+      },
+      "has_children": false,
+      "in_trash": false,
+      "type": "code",
+      "code": {
+        "caption": [],
+        "rich_text": [
+          {
+            "type": "text",
+            "text": {
+              "content": "{\n  \"pub\": {\n    \"_id\": \"c1a5c523-f122-4768-906b-488ad238b6ac\",\n    \"created\": 1782455013.65,\n    \"pubtype\": \"PP_ARTICLE\",\n    \"id_list\": [\n      \"sha1:09661e435de34be1b31ca8671b5e3bed1b0f25d7\",\n      \"dup_sha1:7b04801d36e254f1554c30b04ec483bc3a64d0e9\",\n      \"doi:10.1016/j.vaccine.2026.128659\",\n      \"pmid:42068906\",\n      \"url:http://dx.doi.org/10.1016/j.vaccine.2026.128659\",\n      \"url:https://linkinghub.elsevier.com/retrieve/pii/S0264410X26004676\",\n      \"url:https://www.ncbi.nlm.nih.gov/pubmed/42068906\"\n    ],\n    \"author\": [\n      {\n        \"first\": \"Jinglong\",\n        \"last\": \"Shi\",\n        \"initials\": \"J\",\n        \"formatted\": \"Shi J\"\n      },\n      {\n        \"first\": \"Jie\",\n        \"last\": \"Wang\",\n        \"initials\": \"J\",\n        \"formatted\": \"Wang J\"\n      },\n      {\n        \"first\": \"Hongmei\",\n        \"last\": \"Luo\",\n        \"initials\": \"H\",\n        \"formatted\": \"Luo H\"\n      },\n      {\n        \"first\": \"Qiang\",\n        \"last\": \"Zhao\",\n        \"initials\": \"Q\",\n        \"formatted\": \"Zhao Q\"\n      },\n      {\n        \"first\": \"Zhouchi\",\n        \"last\": \"Yao\",\n        \"initials\": \"Z\",\n        \"formatted\": \"Yao Z\"\n      },\n      {\n        \"first\": \"Genping\",\n        \"last\": \"Wu\",\n        \"initials\": \"G\",\n        \"formatted\": \"Wu G\"\n      },\n      {\n        \"first\": \"Ze\",\n        \"last\": \"Li\",\n        \"initials\": \"Z\",\n        \"formatted\": \"Li Z\"\n      },\n      {\n        \"first\": \"Hong\",\n        \"last\": \"Wang\",\n        \"initials\": \"H\",\n        \"formatted\": \"Wang H\"\n      },\n      {\n        \"first\": \"Guodong\",\n        \"last\": \"Chen\",\n        \"initials\": \"G\",\n        \"formatted\": \"Chen G\"\n      },\n      {\n        \"first\": \"Daichao\",\n        \"last\": \"Wu\",\n        \"initials\": \"D\",\n        \"formatted\": \"Wu D\"\n      }\n    ],\n    \"pages\": \"128659\",\n    \"title\": \"Neoantigen-based {T} cell vaccines design strategies, therapeutic barriers, and clinical advances\",\n    \"volume\": \"83\",\n    \"published\": {\n      \"year\": \"2026\",\n      \"month\": \"6\",\n      \"day\": \"11\"\n    },\n    \"original_citekey\": \"\",\n    \"source\": {\n      \"guru_id\": \"69f843fbfefbf6b182e3d14b\"\n    },\n    \"incomplete\": 0,\n    \"sha1\": \"09661e435de34be1b31ca8671b5e3bed1b0f25d7\",\n    \"dup_sha1\": \"7b04801d36e254f1554c30b04ec483bc3a64d0e9\",\n    \"citekey\": \"Shi2026-pb\",\n    \"journalfull\": \"Vaccine\",\n    \"journal\": \"Vaccine\",\n    \"issn\": \"0264-410X\",\n    \"issn_alt\": \"1873-2518\",\n    \"folders\": [\n      \"34ae8253-2510-4ffd-ab4b-b8d67caa8476\"\n    ],\n    \"labels\": [],\n    \"owner\": \"E4AF5AD3F30C408688C2A83C0B62F4BA\",\n    \"language\": \"en\",\n    \"doi\": \"10.1016/j.vaccine.2026.128659\",\n    \"pmid\": \"42068906\",\n    \"abstract\": \"Over the past several decades, immunotherapy has emerged as a transformative paradigm in oncology. Within this domain, vaccines targeting tumor-specific neoantigens represent one of the most advanced approaches, engineered to activate the host immune system and elicit potent, antigen-specific T-cell responses. By stimulating both CD8+ cytotoxic and CD4+ helper T cells, these vaccines enable highly selective tumor cell elimination while establishing durable immunological memory. Despite their promise, the rational development and clinical translation of neoantigen-based vaccines remain constrained by substantial challenges that limit their broad therapeutic impact. This review provides a comprehensive synthesis of the field, tracing the entire pipeline from the molecular origin and computational prediction of neoantigens to the design principles guiding vaccine formulation. It examines mechanisms of action across diverse platforms-including mRNA, peptide, and dendritic cell vaccines-and explores synergistic strategies that combine adjuvants or immune checkpoint blockade to enhance efficacy. In addition, we critically evaluate key barriers to success, such as immunosuppressive tumor microenvironments, T-cell dysfunction, and antigenic escape. Finally, we highlight recent clinical advances aimed at overcoming these barriers, thereby outlining a framework for optimizing neoantigen vaccine design to maximize their therapeutic potential in cancer treatment. Notably, encouraging progress has been reported in malignancies such as non-small cell lung cancer and melanoma, underscoring the translational promise of this strategy.\",\n    \"keywords\": \"Clinical advances; Clinical challenges; Immunotherapy; Neoantigen; T cell vaccines; Tumor\",\n    \"kind\": \"Review\",\n    \"issue\": \"128659\",\n    \"publisher\": \"Elsevier BV\",\n    \"url\": [\n      \"https://linkinghub.elsevier.com/retrieve/pii/S0264410X26004676\",\n      \"http://dx.doi.org/10.1016/j.vaccine.2026.128659\",\n      \"https://www.ncbi.nlm.nih.gov/pubmed/42068906\"\n    ],\n    \"citedByLink\": \"http://scholar.google.com/scholar?hl=en&lr=&num=30&cites=http://dx.doi.org/10.1016/j.vaccine.2026.128659\",\n    \"subfolders\": [\n      \"All Papers/S\"\n    ],\n    \"autoCleaned\": 1\n  },\n  \"userId\": \"E4AF5AD3F30C408688C2A83C0B62F4BA\",\n  \"additionalInfo\": {}\n}",
+              "link": null
+            },
+            "annotations": {
+              "bold": false,
+              "italic": false,
+              "strikethrough": false,
+              "underline": false,
+              "code": false,
+              "color": "default"
+            },
+            "plain_text": "{\n  \"pub\": {\n    \"_id\": \"c1a5c523-f122-4768-906b-488ad238b6ac\",\n    \"created\": 1782455013.65,\n    \"pubtype\": \"PP_ARTICLE\",\n    \"id_list\": [\n      \"sha1:09661e435de34be1b31ca8671b5e3bed1b0f25d7\",\n      \"dup_sha1:7b04801d36e254f1554c30b04ec483bc3a64d0e9\",\n      \"doi:10.1016/j.vaccine.2026.128659\",\n      \"pmid:42068906\",\n      \"url:http://dx.doi.org/10.1016/j.vaccine.2026.128659\",\n      \"url:https://linkinghub.elsevier.com/retrieve/pii/S0264410X26004676\",\n      \"url:https://www.ncbi.nlm.nih.gov/pubmed/42068906\"\n    ],\n    \"author\": [\n      {\n        \"first\": \"Jinglong\",\n        \"last\": \"Shi\",\n        \"initials\": \"J\",\n        \"formatted\": \"Shi J\"\n      },\n      {\n        \"first\": \"Jie\",\n        \"last\": \"Wang\",\n        \"initials\": \"J\",\n        \"formatted\": \"Wang J\"\n      },\n      {\n        \"first\": \"Hongmei\",\n        \"last\": \"Luo\",\n        \"initials\": \"H\",\n        \"formatted\": \"Luo H\"\n      },\n      {\n        \"first\": \"Qiang\",\n        \"last\": \"Zhao\",\n        \"initials\": \"Q\",\n        \"formatted\": \"Zhao Q\"\n      },\n      {\n        \"first\": \"Zhouchi\",\n        \"last\": \"Yao\",\n        \"initials\": \"Z\",\n        \"formatted\": \"Yao Z\"\n      },\n      {\n        \"first\": \"Genping\",\n        \"last\": \"Wu\",\n        \"initials\": \"G\",\n        \"formatted\": \"Wu G\"\n      },\n      {\n        \"first\": \"Ze\",\n        \"last\": \"Li\",\n        \"initials\": \"Z\",\n        \"formatted\": \"Li Z\"\n      },\n      {\n        \"first\": \"Hong\",\n        \"last\": \"Wang\",\n        \"initials\": \"H\",\n        \"formatted\": \"Wang H\"\n      },\n      {\n        \"first\": \"Guodong\",\n        \"last\": \"Chen\",\n        \"initials\": \"G\",\n        \"formatted\": \"Chen G\"\n      },\n      {\n        \"first\": \"Daichao\",\n        \"last\": \"Wu\",\n        \"initials\": \"D\",\n        \"formatted\": \"Wu D\"\n      }\n    ],\n    \"pages\": \"128659\",\n    \"title\": \"Neoantigen-based {T} cell vaccines design strategies, therapeutic barriers, and clinical advances\",\n    \"volume\": \"83\",\n    \"published\": {\n      \"year\": \"2026\",\n      \"month\": \"6\",\n      \"day\": \"11\"\n    },\n    \"original_citekey\": \"\",\n    \"source\": {\n      \"guru_id\": \"69f843fbfefbf6b182e3d14b\"\n    },\n    \"incomplete\": 0,\n    \"sha1\": \"09661e435de34be1b31ca8671b5e3bed1b0f25d7\",\n    \"dup_sha1\": \"7b04801d36e254f1554c30b04ec483bc3a64d0e9\",\n    \"citekey\": \"Shi2026-pb\",\n    \"journalfull\": \"Vaccine\",\n    \"journal\": \"Vaccine\",\n    \"issn\": \"0264-410X\",\n    \"issn_alt\": \"1873-2518\",\n    \"folders\": [\n      \"34ae8253-2510-4ffd-ab4b-b8d67caa8476\"\n    ],\n    \"labels\": [],\n    \"owner\": \"E4AF5AD3F30C408688C2A83C0B62F4BA\",\n    \"language\": \"en\",\n    \"doi\": \"10.1016/j.vaccine.2026.128659\",\n    \"pmid\": \"42068906\",\n    \"abstract\": \"Over the past several decades, immunotherapy has emerged as a transformative paradigm in oncology. Within this domain, vaccines targeting tumor-specific neoantigens represent one of the most advanced approaches, engineered to activate the host immune system and elicit potent, antigen-specific T-cell responses. By stimulating both CD8+ cytotoxic and CD4+ helper T cells, these vaccines enable highly selective tumor cell elimination while establishing durable immunological memory. Despite their promise, the rational development and clinical translation of neoantigen-based vaccines remain constrained by substantial challenges that limit their broad therapeutic impact. This review provides a comprehensive synthesis of the field, tracing the entire pipeline from the molecular origin and computational prediction of neoantigens to the design principles guiding vaccine formulation. It examines mechanisms of action across diverse platforms-including mRNA, peptide, and dendritic cell vaccines-and explores synergistic strategies that combine adjuvants or immune checkpoint blockade to enhance efficacy. In addition, we critically evaluate key barriers to success, such as immunosuppressive tumor microenvironments, T-cell dysfunction, and antigenic escape. Finally, we highlight recent clinical advances aimed at overcoming these barriers, thereby outlining a framework for optimizing neoantigen vaccine design to maximize their therapeutic potential in cancer treatment. Notably, encouraging progress has been reported in malignancies such as non-small cell lung cancer and melanoma, underscoring the translational promise of this strategy.\",\n    \"keywords\": \"Clinical advances; Clinical challenges; Immunotherapy; Neoantigen; T cell vaccines; Tumor\",\n    \"kind\": \"Review\",\n    \"issue\": \"128659\",\n    \"publisher\": \"Elsevier BV\",\n    \"url\": [\n      \"https://linkinghub.elsevier.com/retrieve/pii/S0264410X26004676\",\n      \"http://dx.doi.org/10.1016/j.vaccine.2026.128659\",\n      \"https://www.ncbi.nlm.nih.gov/pubmed/42068906\"\n    ],\n    \"citedByLink\": \"http://scholar.google.com/scholar?hl=en&lr=&num=30&cites=http://dx.doi.org/10.1016/j.vaccine.2026.128659\",\n    \"subfolders\": [\n      \"All Papers/S\"\n    ],\n    \"autoCleaned\": 1\n  },\n  \"userId\": \"E4AF5AD3F30C408688C2A83C0B62F4BA\",\n  \"additionalInfo\": {}\n}",
+            "href": null
+          }
+        ],
+        "language": "json"
+      },
+      "archived": false
+    }
+  ]
+}
