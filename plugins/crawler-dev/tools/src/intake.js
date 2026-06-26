@@ -65,7 +65,8 @@ function parseReport(page) {
   const blocks = (page && page._blocks) || [];
 
   const url = props.URL && props.URL.url;
-  const mode = props.Type && props.Type.select && props.Type.select.name;
+  // Canonicalize at the intake boundary: Notion's label is "Metadata", not "META".
+  const mode = canonicalMode(props.Type && props.Type.select && props.Type.select.name);
   const env = props.PP_ENV && props.PP_ENV.select && props.PP_ENV.select.name;
   const proxyUsed = !!(props['Proxy Used'] && props['Proxy Used'].checkbox);
   const build = richText(props['Extension Build']);
