@@ -38,7 +38,7 @@ describe('parseArgs', () => {
     expect(parseArgs(['--limit']).limit).toBe(true);
   });
   test('--skip-sweep is a boolean flag', () => {
-    expect(parseArgs(['--skip-sweep']).['skip-sweep']).toBe(true);
+    expect(parseArgs(['--skip-sweep'])['skip-sweep']).toBe(true);
   });
 });
 
