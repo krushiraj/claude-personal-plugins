@@ -62,10 +62,12 @@ function tryS3(caseObj) {
 // execFileSync) so we ALWAYS get both streams regardless of exit code —
 // crawler:debug logs to stderr too, and a passing crawl's log would otherwise be
 // nearly empty. A non-zero exit (the crawler failing) is NOT an error for us.
-// `cmd`/`args` are injectable to make this testable with a tiny fake script.
-function runLocalCrawler(url, mode, cmd = 'yarn', args) {
-  const argv = args || ['crawler:debug', url, mode];
-  const r = spawnSync(cmd, argv, { cwd: SHARED_DIR, encoding: 'utf8', maxBuffer: MAX_BUFFER });
+// `opts` (cmd/args/cwd) is injectable so tests can point at a tiny fake script.
+function runLocalCrawler(url, mode, opts = {}) {
+  const cmd = opts.cmd || 'yarn';
+  const argv = opts.args || ['crawler:debug', url, mode];
+  const cwd = opts.cwd || SHARED_DIR;
+  const r = spawnSync(cmd, argv, { cwd, encoding: 'utf8', maxBuffer: MAX_BUFFER });
   const parts = [];
   if (r.stdout) parts.push(r.stdout);
   if (r.stderr) parts.push(r.stderr);
