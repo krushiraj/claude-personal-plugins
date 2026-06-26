@@ -55,13 +55,19 @@ function renderMd(caseObj) {
   return lines.join('\n');
 }
 
-// Create the case folder, write case.json + case.md, return the folder path.
-function writeCase(baseDir, caseObj) {
-  const folder = path.join(baseDir, folderName(caseObj));
+// Write case.json + case.md into an EXISTING/known folder, in place. Use this
+// to update a case you already located (e.g. log-acquire persisting results) so
+// the write lands exactly where you read from — never a date-recomputed folder.
+function updateCase(folder, caseObj) {
   fs.mkdirSync(folder, { recursive: true });
   fs.writeFileSync(path.join(folder, 'case.json'), JSON.stringify(caseObj, null, 2) + '\n');
   fs.writeFileSync(path.join(folder, 'case.md'), renderMd(caseObj));
   return folder;
+}
+
+// Mint a case folder under baseDir from the case identity (intake), then write.
+function writeCase(baseDir, caseObj) {
+  return updateCase(path.join(baseDir, folderName(caseObj)), caseObj);
 }
 
 // Parse and return <folder>/case.json.
@@ -69,4 +75,4 @@ function readCase(folder) {
   return JSON.parse(fs.readFileSync(path.join(folder, 'case.json'), 'utf8'));
 }
 
-module.exports = { writeCase, readCase };
+module.exports = { writeCase, updateCase, readCase };
