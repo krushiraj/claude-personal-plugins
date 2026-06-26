@@ -179,7 +179,8 @@ function main() {
 
   if (args['sweep-new']) {
     const status = typeof args['sweep-new'] === 'string' ? args['sweep-new'] : 'New';
-    sweep(status);
+    const limit = typeof args.limit === 'string' ? parseInt(args.limit, 10) : 0;
+    sweep(status, limit);
     return;
   }
 
@@ -190,10 +191,7 @@ function main() {
     caseObj = caseFromDoi(args.doi, args.mode);
   } else if (args.page && typeof args.page === 'string') {
     const { folder, caseObj: pageCase } = intakePage(args.page);
-    console.log(`Created: ${folder}`);
-    console.log(
-      `  ${pageCase.slug || '(no slug)'} | mode=${pageCase.mode} | ${pageCase.publisherUrl || pageCase.url || ''}`
-    );
+    printCreated(folder, pageCase);
     return;
   } else {
     console.error('Error: provide one of --url, --doi, --page, or --sweep-new.\n');
@@ -202,10 +200,7 @@ function main() {
   }
 
   const folder = writeCase(CASES_DIR, caseObj);
-  console.log(`Created: ${folder}`);
-  console.log(
-    `  ${caseObj.slug || '(no slug)'} | mode=${caseObj.mode} | ${caseObj.publisherUrl || caseObj.url || ''}`
-  );
+  printCreated(folder, caseObj);
 }
 
 try {
