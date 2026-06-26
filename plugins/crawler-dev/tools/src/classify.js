@@ -28,22 +28,57 @@ function firstLine(text, re) {
 }
 
 // Markers ------------------------------------------------------------------
+// Success markers are CONFIRMED real (not assumptions): js/shared/scripts/
+// debugCrawler.ts prints `console.log('Result Pub:\n', value)` for META and
+// `console.log(`Result PDF: ${fileName}`)` for PDF.
 const RE_RESULT_PDF = /Result PDF:/i;
 const RE_RESULT_PUB = /Result Pub:/i;
-// Access denied: explicit BLOCKED error, a populated blockedUrl, or HTTP 403/401.
-const RE_BLOCKED = /\bBLOCKED\b/;
-const RE_BLOCKED_URL = /blockedUrl:\s*'[^']+'/; // non-null blockedUrl
-const RE_HTTP_DENIED = /\b(?:HTTP\s*)?(?:403|401)\b|forbidden|unauthorized|access[\s_-]?restricted|login[\s_-]?required|paywall/i;
-// Referer-required: a 403/401 specifically while fetching a .pdf link.
-const RE_PDF_DENIED = /(?:403|401|forbidden|unauthorized).{0,80}\.pdf|\.pdf.{0,80}(?:403|401|forbidden|unauthorized)/i;
+
+// --- Access-denied markers (drive proxy-needed / blocked-paywall) ---
+// We deliberately match the crawler's OWN markers, not loose body words, so a
+// page that merely echoes "paywall"/"login" in its dumped HTML is NOT treated
+// as blocked (that would shadow selector-drift). See review fixes #2, #3, #6.
+const RE_BLOCKED = /\bBLOCKED\b/; // the 'BLOCKED' error token (case-sensitive on purpose)
+const RE_BLOCKED_URL = /blockedUrl:\s*'[^']+'/; // a non-null blockedUrl
+// HTTP 401/403 ONLY when adjacent to an http-context word — avoids matching
+// byte counts / ids like "(403 bytes)".
+const RE_HTTP_DENIED = /(?:HTTP|status|code|response).{0,12}(?:401|403)\b/i;
+// The crawler's explicit access error codes.
+const RE_ACCESS_CODE = /ACCESS_RESTRICTED|LOGIN_REQUIRED|PROXY_LOGGED_OUT/;
+// Anti-bot interstitials (Cloudflare / Anubis / reCAPTCHA / "Just a moment").
+// tips.md "Anubis Challenge" + Diagnosis Workflow class these as BLOCKED, so
+// they live here, NOT in js-rendered — keeps the anti-bot cause clustering
+// consistently even when the explicit BLOCKED marker didn't also fire.
+const RE_ANTIBOT = /Cloudflare|Anubis|reCAPTCHA|Just a moment|ISTL-INFINITE-LOOP/i;
+
+// Referer-required: a 401/403 (in http context) specifically on a .pdf fetch.
+const RE_PDF_DENIED = /(?:HTTP|status|code|response).{0,12}(?:401|403)\b.*\.pdf|\.pdf.*(?:HTTP|status|code|response).{0,12}(?:401|403)\b/i;
+
 // Network: transport-level failures (NOT http auth codes).
-const RE_NETWORK = /FETCH_FAILED|aborted|timed?\s?out|timeout|ETIMEDOUT|ECONNRESET|ECONNREFUSED|ENOTFOUND|EAI_AGAIN|socket hang up|DNS|getaddrinfo/i;
-// JS-rendered: content only appears after browser/JS execution.
-const RE_JS = /\bSPA\b|Angular|<ds-app|JavaScript|dynamic:\s*true|rendered by (?:JavaScript|JS)|Just a moment|reCAPTCHA|Anubis|app shell/i;
-// Selector-drift: page loaded but extraction returned nothing.
-const RE_SELECTOR = /JqMeta.*(?:no|null|nothing|empty|failed|not found)|no citation_pdf_url|no pdf url|returned (?:nothing|null|no pdf)/i;
+const RE_NETWORK = /FETCH_FAILED|aborted|timed?\s?out|timeout|ETIMEDOUT|ECONNRESET|ECONNREFUSED|ENOTFOUND|EAI_AGAIN|socket hang up|\bDNS\b|getaddrinfo/i;
+
+// JS-rendered: a genuine SPA shell / JS-only render (NOT anti-bot, NOT the
+// "Please enable JavaScript" noscript boilerplate). Require an SPA/render-
+// failure context — the bare word "JavaScript" is intentionally not enough.
+const RE_JS = /\bSPA\b|Angular|<ds-app|app shell|rendered by (?:JavaScript|JS)|dynamic:\s*true/i;
+
+// Selector-drift: page loaded but extraction returned nothing. Word-bounded so
+// "no" doesn't match inside "node"/"cannot".
+const RE_SELECTOR = /JqMeta.*(?:\bno\b|\bnull\b|\bnothing\b|\bempty\b|\bfailed\b|\bnot found\b)|no citation_pdf_url|\bno pdf url\b|returned (?:\bnothing\b|\bnull\b|no pdf)/i;
+
 // DOI resolution failure (META).
 const RE_DOI_FAIL = /Doi target (?:failed|returned)|DOI resolution|CrossRef returned no|DOI_RESOLUTION_FAILED|no record for 10\./i;
+
+// Any crawler-emitted access-denied evidence (shared by proxy-needed + blocked).
+function blockedEvidence(text) {
+  return (
+    firstLine(text, RE_BLOCKED) ||
+    firstLine(text, RE_BLOCKED_URL) ||
+    firstLine(text, RE_HTTP_DENIED) ||
+    firstLine(text, RE_ACCESS_CODE) ||
+    firstLine(text, RE_ANTIBOT)
+  );
+}
 
 // Rules table — ordered, first match wins -----------------------------------
 const RULES = [
