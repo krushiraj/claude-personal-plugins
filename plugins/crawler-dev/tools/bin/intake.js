@@ -105,9 +105,11 @@ function caseFromPage(pageId, token) {
 
   // Notion returns an error body with HTTP 200 for a bad id, so parsing
   // "succeeds" into an empty case. Reject anything lacking the essentials.
-  if (!caseObj.mode && !caseObj.expectedPub && !caseObj.url && !caseObj.publisherUrl) {
+  // (mode is always canonicalized to a non-empty token now, so it is no longer
+  // a signal of emptiness — rely on url/publisherUrl/publication.)
+  if (!caseObj.expectedPub && !caseObj.url && !caseObj.publisherUrl) {
     throw new Error(
-      `could not parse Notion page ${pageId} (no mode/url/publication found — bad id or not a crawler-report row?)`
+      `could not parse Notion page ${pageId} (no url/publication found — bad id or not a crawler-report row?)`
     );
   }
 
