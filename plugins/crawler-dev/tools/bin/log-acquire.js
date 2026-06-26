@@ -130,7 +130,8 @@ function main() {
     path: logPath,
     acquiredAt: new Date().toISOString(),
   };
-  writeCase(CASES_DIR, caseObj);
+  // Write back next to where we read it (keyed by identity -> same folder).
+  writeCase(path.dirname(path.resolve(folder)), caseObj);
 
   console.log(`logs: ${provenance} -> ${logPath}`);
 }
