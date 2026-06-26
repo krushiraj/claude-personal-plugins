@@ -89,7 +89,8 @@ const RULES = [
     siteKind: 'unknown',
     obtainable: (text) => ({
       pdf: RE_RESULT_PDF.test(text) ? true : null,
-      // META success implies the publication (with its doi) resolved.
+      // Optimistic: a META `Result Pub:` usually carries a DOI, but a pub can
+      // resolve without one — treat as a best-effort hint, not a guarantee.
       doi: RE_RESULT_PUB.test(text) ? true : null,
       abstract: null,
     }),
