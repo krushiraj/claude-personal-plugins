@@ -120,32 +120,49 @@ function caseFromPage(pageId, token) {
 
 // Fetch + parse a single Notion report row and write its case folder.
 // Shared by --page and --sweep-new. Returns { folder, caseObj }.
-function intakePage(pageId) {
-  const caseObj = caseFromPage(pageId);
+function intakePage(pageId, token) {
+  const caseObj = caseFromPage(pageId, token);
   const folder = writeCase(CASES_DIR, caseObj);
   return { folder, caseObj };
 }
 
+// Print the "Created:" summary for a single case.
+function printCreated(folder, caseObj) {
+  console.log(`Created: ${folder}`);
+  console.log(
+    `  ${caseObj.slug || '(no slug)'} | mode=${caseObj.mode} | ${caseObj.publisherUrl || caseObj.url || ''}`
+  );
+}
+
 // Query the reports DB for rows in the given status and return [{ id }].
-function fetchReportRows(status) {
+// Warns (but does not fail) when the result was truncated at one page.
+function fetchReportRows(status, token) {
   const script = path.join(__dirname, 'fetch-reports.sh');
-  const token = notionToken();
   const stdout = execFileSync('bash', [script, token, REPORTS_DB_ID, status], {
     encoding: 'utf8',
     maxBuffer: 32 * 1024 * 1024,
   });
-  return parseReportRows(stdout);
+  const data = JSON.parse(stdout);
+  if (data && data.has_more === true) {
+    console.error(
+      `warning: more than 100 ${status} reports exist; only the first page was fetched`
+    );
+  }
+  return parseReportRows(data);
 }
 
 // Intake every report row in the given status, resilient to per-row failures.
-function sweep(status) {
-  const rows = fetchReportRows(status);
+// limit (>0) caps how many rows are processed.
+function sweep(status, limit) {
+  const token = notionToken();
+  let rows = fetchReportRows(status, token);
+  if (limit > 0) rows = rows.slice(0, limit);
   const created = [];
   let skipped = 0;
 
   for (const row of rows) {
     try {
-      const { folder } = intakePage(row.id);
+      const { folder } = intakePage(row.id, token);
       created.push(folder);
     } catch (err) {
       skipped++;
@@ -153,10 +170,8 @@ function sweep(status) {
     }
   }
 
-  console.log(
-    `Swept ${rows.length} ${status} reports -> ${created.length} cases written, ${skipped} skipped`
-  );
-  for (const folder of created) console.log(`  ${folder}`);
+  console.log(summarize(created, skipped, rows.length, status));
+  for (const folder of [...new Set(created)]) console.log(`  ${folder}`);
 }
 
 function main() {
