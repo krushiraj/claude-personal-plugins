@@ -1,0 +1,2 @@
+Crawling https://example.org/article/123 in META mode
+Result Pub: { title: 'A Study of Things', doi: '10.1000/example.123', journal: 'J. Examples' }
