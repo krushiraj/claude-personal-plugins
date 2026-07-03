@@ -121,6 +121,34 @@ const RULES = [
     test: (text) => firstLine(text, RE_PDF_DENIED),
   },
 
+  // --- Extension-verdict markers (classify v2) ------------------------------
+  // The crawler's own error tokens are more specific than the generic
+  // blocked/network heuristics, so they are ordered BEFORE them.
+
+  // Paywall / no entitlement: the site answered but denied full-text access.
+  {
+    errorClass: 'access-restricted',
+    siteKind: 'publisher-html',
+    obtainable: { pdf: false, doi: null, abstract: null },
+    test: (text) => firstLine(text, RE_EXT_ACCESS_RESTRICTED),
+  },
+
+  // Proxy session expired: the institutional proxy needs a re-login.
+  {
+    errorClass: 'proxy-logged-out',
+    siteKind: 'publisher-html',
+    obtainable: { pdf: false, doi: null, abstract: null },
+    test: (text) => firstLine(text, RE_EXT_PROXY_LOGGED_OUT),
+  },
+
+  // No driver knows this site — needs a new/extended driver, not a fix.
+  {
+    errorClass: 'site-not-supported',
+    siteKind: 'unknown',
+    obtainable: { pdf: null, doi: null, abstract: null },
+    test: (text) => firstLine(text, RE_EXT_SITE_NOT_SUPPORTED),
+  },
+
   // tips.md "Access Restricted Content" + Diagnosis Workflow (BLOCKED).
   // BLOCKED-vs-PROXY DECISION (access, not parsing):
   //   If access is denied AND ctx.proxyUsed === false, the crawler tried the
