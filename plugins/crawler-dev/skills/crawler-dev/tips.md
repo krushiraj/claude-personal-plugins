@@ -2,6 +2,8 @@
 
 Accumulated knowledge for common crawler fixes. Check here before investigating - the solution may already be documented.
 
+**Policy**: this file holds GENERIC patterns only. Driver-specific knowledge belongs in comments next to the driver code (pdf.ts / meta.ts / urlPatterns.ts / driverFunctions/*). Only put driver-related knowledge here when it genuinely cannot be expressed at the code site (e.g. platform patterns spanning many drivers). When fixing a driver, write the "why" as a comment on the rule/sig itself.
+
 ---
 
 ## PDF Issues
@@ -23,22 +25,23 @@ Accumulated knowledge for common crawler fixes. Check here before investigating 
 - **Fix**: Use `rewrite` step to skip directly to final URL pattern
 - **Example**: If `/article/123` redirects to `/article/123/pdf`, use rewrite to go direct
 
-### citation_pdf_url Is Stale (Early-Access / Springer `_reference.pdf`)
+### citation_pdf_url Is Stale
 - **Symptom**: `citation_pdf_url` meta points to a URL that 404s (even in a real browser with cookies), yet the page's own "Download PDF" button works
-- **Cause**: Publisher's meta tag lags the actual asset. Known case: Springer early-access/unedited manuscripts — `content/pdf/<doi>.pdf` doesn't exist yet; the real PDF is `content/pdf/<doi>_reference.pdf`
-- **Diagnose**: In page context run `fetch(citationPdfUrl).then(r => r.status)` (404) and compare with `document.querySelector('a[data-track-action="download pdf"]').href`
-- **Fix**: Add a fallback match rule for the real download anchor AFTER the citation_pdf_url rule (rules run in order until one yields a valid PDF):
-  ```typescript
-  { steps: [{ match: 'href="([^"]+_reference\\.pdf)"[^>]*class="c-pdf-download__link"' }] }
-  ```
-- **Fixed**: 2026-07 Springer Link (BMC 10.1186 early-access cluster, 9 reports)
+- **Cause**: Publisher's meta tag lags the actual asset (common on early-access/ahead-of-print articles)
+- **Diagnose**: In page context compare `fetch(citationPdfUrl).then(r => r.status)` with `document.querySelector('a[data-track-action="download pdf"]')?.href` (or whatever the real download anchor is)
+- **Fix**: Add a fallback match rule for the real download anchor AFTER the citation_pdf_url rule — rules run in order until one yields a valid PDF. Document the publisher's quirk as a comment on the rule.
 
 ### Stale pdf_restricted_sigs (Paywall Misreported as CRAWLER_FAILED)
 - **Symptom**: Paywalled article fails with generic `CRAWLER_FAILED` instead of `ACCESS_RESTRICTED`; PDF URL returns HTTP 200 with an HTML paywall page
 - **Cause**: Publisher changed paywall markup; none of the driver's `pdf_restricted_sigs` (urlPatterns.ts) match anymore — sigs rot silently
 - **Diagnose**: Grep the captured page body (extension pdf-crawl-log `collectedLogs[].response.body`) for each existing sig — if all miss, find what the current paywall actually says
-- **Fix**: Add the current paywall markers to `pdf_restricted_sigs`. Prefer explicit commerce phrases ('Buy this article') over generic words
-- **Fixed**: 2026-07 Nature ('Buy this article', 'Access options'). Suspected same rot: Taylor & Francis, Cambridge, Karger
+- **Fix**: Add the current paywall markers to `pdf_restricted_sigs` with a dated comment. Prefer explicit commerce phrases ('Buy this article') over generic words
+
+### Restricted-Signature Regex Misses HTML Tags Between Words
+- **Symptom**: Page clearly contains "subscriber/member/login required" text but `pdf_restricted_sigs` doesn't fire
+- **Cause**: The page wraps the message with `<br/>` (or other inline HTML) between words, e.g. `accessible to AMA<br/> members`. The literal-text regex doesn't match
+- **Fix**: Replace inline literal spaces with a small character class, e.g. `'accessible to AMA.{0,20}members'`, or pick a unique unbroken substring
+- **Tip**: When adding a new sig, paste a chunk of the rendered HTML from the page source — don't trust the visible text
 
 ### JqMeta Fails but PDF URL Exists
 - **Symptom**: `fn: 'JqMeta'` returns nothing, but PDF URL is in page source
@@ -59,14 +62,14 @@ Accumulated knowledge for common crawler fixes. Check here before investigating 
 - **Symptom**: Match step captures URL but breaks at `?` or `&`
 - **Fix**: Adjust regex to include query string: `([^"']+\.pdf[^"']*)`
 
-### Regex Quantifier Mismatch
+### Regex Quantifier Mismatch (`+` vs `*`)
 - **Symptom**: Match step fails even though pattern looks correct
-- **Check**: Does the captured path start immediately with the target pattern (e.g., `/item/...` with nothing before it)?
-- **Cause**: Using `[^"]+` (one or more) when the path has no preceding characters
-- **Fix**: Use `[^"]*` (zero or more) instead of `[^"]+`
-- **Example**:
-  - Bad: `([^"]+/item/[^"]+\.pdf)` - fails on `/item/10.5802/msia.10.pdf`
-  - Good: `([^"]*/item/[^"]+\.pdf)` - works because `*` allows zero chars before `/item/`
+- **Cause**: `[^"]+` (one or more) used where zero chars are valid — either BEFORE the target path or AFTER `.pdf`
+- **Fix**: Use `[^"]*` (zero or more) on both sides unless at least one char is guaranteed
+- **Examples**:
+  - Bad: `([^"]+/item/[^"]+\.pdf)` — fails on `/item/10.5802/msia.10.pdf` (nothing before `/item/`)
+  - Bad: `href=["']([^"']+\.pdf[^"']+)["']` — fails on URLs ending exactly at `.pdf"` (nothing after)
+  - Good: `([^"]*/item/[^"]+\.pdf[^"']*)`
 
 ---
 
@@ -117,6 +120,7 @@ Accumulated knowledge for common crawler fixes. Check here before investigating 
   1. Check `pdf_url_restricted_sigs` in urlPatterns
   2. Mark test as `restricted: true`
   3. Find open-access article for testing
+- **Note**: restricted-test expectations accept ACCESS_RESTRICTED/LOGIN_REQUIRED/PROXY_LOGGED_OUT but NOT BLOCKED — use `pdf_restricted_sigs` (not `blocking_body_sigs`) when the goal is a restricted verdict
 
 ---
 
@@ -172,6 +176,32 @@ Accumulated knowledge for common crawler fixes. Check here before investigating 
 
 ---
 
+## Anti-Bot & SPA Platform Patterns
+
+Patterns spanning many publishers (a platform, not one driver) — the specific sigs/implementations live in the driver files with comments.
+
+### Cookie-Bounce Identity Providers
+- **Symptom**: PDF URL 30x-redirects to an `idp.<publisher>.com/authorize?response_type=cookie...` hop; non-browser fetches land on `?error=cookies_not_supported` → 404
+- **Diagnose**: `curl -sI <pdf-url> | grep -i location`; verify in a real browser via page-context `fetch(url, {credentials:'include'})`
+- **Note**: The bounce failing does NOT prove the asset exists — check whether the PDF is fetchable in a real browser before blaming the bounce
+
+### Webroute / ISTL Interstitial
+- **Symptom**: HTTP 200 `text/html` but body is obfuscated JS, no real content; JqMeta returns null. `detectCaptcha` does NOT catch it (no `cf-mitigated`, no "Just a moment...")
+- **Markers**: headers `X-Webroute-Cache*`; body `ISTL-INFINITE-LOOP`, `ISTL-RESPONSE-URL`, `ISTL-REDIRECT-TO`
+- **Fix**: add `ISTL-INFINITE-LOOP` to the affected driver's `pdf_restricted_sigs` (gives ACCESS_RESTRICTED; `blocking_body_sigs` would give BLOCKED which restricted tests don't accept)
+
+### Anubis Proof-of-Work Challenge
+- **Marker**: `Protected by <a href="https://github.com/TecharoHQ/anubis">Anubis</a>`
+- **Fix**: add as `blocking_body_sigs` on the affected driver so the crawler reports BLOCKED rather than CRAWLER_FAILED
+- **Known adopters**: OpenEdition (`journals.openedition.org`) — NOTE: sig not yet added to the OpenEdition urlPatterns entry
+
+### DSpace 7 (Angular SPA Repositories)
+- **Symptom**: crawler sees only `<ds-app></ds-app>` app shell; no meta tags. DSpace 7 SSRs full HTML only for non-browser user agents
+- **Quick check**: browser-UA curl returns ~800 bytes; generic-UA curl returns hundreds of KB
+- **Fix**: use the DSpace REST API (`/server/api/core/items/{uuid}?embed=bundles/bitstreams` → ORIGINAL bundle → bitstream `content` href). Implemented once for all DSpace hosts in `driverFunctions/pdf/dspace.ts` (see comments there, incl. the per-request `allowedMimeTypes` gotcha)
+
+---
+
 ## Step Helpers Reference
 
 ### match
@@ -213,71 +243,10 @@ Call built-in function:
   ```
 - **Note**: This helps reproduce what the browser sees vs what a raw request gets
 
+### Replay Real User Crawls Offline
+- Extension-uploaded `*_pdf-crawl-log_*.json` files replay deterministically with `yarn crawler:debug:replay <file>` — no network, exact user conditions. The captured `collectedLogs[].response.body` is also the ground truth for testing sigs/regexes. See the `crawler-fix-loop` skill for the triage toolchain.
+
 ---
-
-## Publisher-Specific Findings
-
-### APS (American Physical Society)
-- **Restricted signature changed**: APS moved from `<h2>Authorization Required` to `<h1 class="...">Authorization Required` — strip heading tag from the signature and match only `Authorization Required`.
-- **physics.aps.org (Physics magazine)** has NO `citation_pdf_url` meta tag, unlike `journals.aps.org`. Needs a separate rule: `match: 'href="(/articles/pdf/[^"]+)"'`.
-- **Pattern**: `pdf_restricted_sigs: ['Authorization Required']` (no prefix)
-
-### PsyArXiv (Open Science Framework)
-- `psyarxiv.com/{id}` redirects to `osf.io/preprints/psyarxiv/{id}` which is a **Angular/JS SPA** with no meta tags in initial HTML.
-- **Fix**: add a specific rewrite that jumps straight to the OSF download URL:
-  ```typescript
-  { rewrite: ['^https?://(?:www\\.)?psyarxiv\\.com/([^/?#]+).*', 'https://osf.io/download/$1/'] }
-  ```
-- The generic fallback `(https?://[^/]+)/.*?([^/]+)/?$` → `$1/download/$2/` still works for `osf.io/preprints/*`.
-
-### JSTOR
-- **Bug**: `url.match(/\/(\d+)\??/)` only captures digits before first `.`, so `10.1086/663681` becomes `10`. Breaks DOI-shaped IDs (`10.1086/663681`) and prefixed IDs (`resrep00259.13`).
-- **Fix**: capture everything after `/stable/` (or `/stable/info/`) up to a `?`:
-  ```typescript
-  const [, documentId] = url.match(/\/stable\/(?:info\/)?([^?#]+?)\/?$/) || [];
-  ```
-
-### EuropePMC (PubMed Central)
-- The `europepmc.org/articles/PMC{id}` page is a JS shell — no `citation_pdf_url`, and the `/pdf/` redirect goes to a flaky `/backend/ptpmcrender.fcgi?...` backend.
-- The PMID-based URLs (`europepmc.org/abstract/MED/{pmid}`, `pmc.ncbi.nlm.nih.gov/articles/pmid/{pmid}/...`) now serve a Google reCAPTCHA wall — *not* the cloudpmc PoW that pubmed.ts can solve.
-- **Working approach (used in pubmed.ts for europepmc URLs only)**:
-  1. If PMID URL: resolve to PMCID via `https://pmc.ncbi.nlm.nih.gov/tools/idconv/api/v1/articles/?ids={pmid}&format=json` (look at `records[0].pmcid`).
-  2. Hit `https://europepmc.org/api/getPdf?pmcid={pmcid}` — returns `application/pdf` directly. One call, no captcha, no filename guessing.
-- **Don't use this for ncbi.nlm.nih.gov/pmc URLs** — those still work via the original cloudpmc-PoW path. Scope the regex to `europepmc\.org` only.
-
-### Restricted-signature regex misses HTML tags between words
-- **Symptom**: Page clearly contains "subscriber/AMA member/login required" text but `pdf_restricted_sigs` doesn't fire.
-- **Cause**: The page wraps the message with `<br/>` (or other inline HTML) between words, e.g. `accessible to AMA<br/> members`. The regex (literal text, no HTML allowance) doesn't match.
-- **Fix**: replace inline literal spaces with a small character class, e.g. `'accessible to AMA.{0,20}members'`, or pick a unique unbroken substring like `'Login to MJA or subscribe now'`.
-- **Tip**: when adding a new sig, paste a chunk of the rendered HTML from the page source — don't trust the visible text.
-
-### Match step requires chars after `.pdf` (`[^"']+` vs `[^"']*`)
-- **Symptom**: `match` step fails on URLs that end exactly at `.pdf"` (no query string, no trailing slash).
-- **Cause**: Common pattern `href=["']([^"']+\.pdf[^"']+)["']` requires *one or more* non-quote chars *after* `.pdf`. URLs like `?wpdmdl=…&filename=foo.pdf"` (Giovanni Fioriti / clinicalneuropsychiatry) have zero chars after `.pdf`.
-- **Fix**: change the trailing `[^"']+` to `[^"']*` (zero or more).
-
-### Webroute / ISTL anti-bot interstitial (Biotaxa Zootaxa, etc.)
-- **Symptom**: HTTP 200 OK with `text/html`, but body is `<!doctype html><html><head><title></title>...<script>(function(...))...` — heavily obfuscated JS, no real content. JqMeta returns null.
-- **Marker**: response headers include `X-Webroute-Cache-Reason` / `X-Webroute-Cache`; body contains `ISTL-INFINITE-LOOP`, `ISTL-RESPONSE-URL`, `ISTL-REDIRECT-TO`.
-- **Detection**: `detectCaptcha` doesn't catch this (status is 200, no `cf-mitigated`, no "Just a moment..." title).
-- **Fix**: add `ISTL-INFINITE-LOOP` to the driver's `pdf_restricted_sigs` so the crawler reports `ACCESS_RESTRICTED` instead of `CRAWLER_FAILED`. (`blocking_body_sigs` would set `BLOCKED`, but restricted-test expectations don't accept BLOCKED — they require ACCESS_RESTRICTED/LOGIN_REQUIRED/PROXY_LOGGED_OUT.)
-
-### DSpace 7 (Angular SPA repositories)
-- **Symptom**: `match`/`fn: 'JqMeta'` returns null. The `bodyText` the crawler sees is just `<!DOCTYPE html>...<ds-app></ds-app>...` with no `citation_pdf_url` meta.
-- **Cause**: DSpace 7 server-side renders only for *non-browser* user agents. Real Chrome (which the crawler advertises) gets the empty Angular app shell. The full meta-tagged page is only delivered to bots/curl-style UAs.
-- **Quick check**: `curl -A "Mozilla/5.0 (...) Chrome/..." -L URL` returns ~800 bytes vs `curl -A "Mozilla/5.0" -L URL` returning hundreds of KB.
-- **Fix**: use the public REST API instead. The flow is:
-  1. URL after redirect: `https://{host}/items/{itemUuid}` → extract `itemUuid`.
-  2. Call `https://{host}/server/api/core/items/{itemUuid}?embed=bundles/bitstreams` (returns `application/hal+json` — must add to `allowedMimeTypes`).
-  3. Find the `ORIGINAL` bundle, then the `.pdf` bitstream, then return `_links.content.href` (`/server/api/core/bitstreams/{uuid}/content`) — that endpoint returns `application/pdf` directly.
-- **Pass `allowedMimeTypes` on the per-request fetch** inside the fn (the global driver `allowed_mime_types` only applies to the *initial* step fetch, not subsequent fetches the fn makes).
-- Implemented in `driverFunctions/pdf/dspace.ts`. Falls back to JqMeta for legacy `/handle/...` URLs.
-
-### Anubis Challenge (OpenEdition, etc.)
-- Some sites use [Anubis](https://github.com/TecharoHQ/anubis) proof-of-work challenge page.
-- **Signature to detect**: `Protected by <a href="https://github.com/TecharoHQ/anubis">Anubis</a>`
-- Add as `blocking_body_sigs` so the crawler reports BLOCKED rather than CRAWLER_FAILED.
-- Affected publishers: OpenEdition (`journals.openedition.org`).
 
 ## Diagnosis Workflow (Quick Wins First)
 
@@ -287,7 +256,7 @@ When asked to fix many failing tests, triage this way:
 2. **Group failures by type** from the crawler logs:
    - `BLOCKED` (populated `blockedUrl`) → Cloudflare / captcha / AWS WAF; rarely fixable from our side.
    - `CRAWLER_FAILED` with `blockedUrl: null` → rule logic issue; try to fix.
-   - `FETCH_FAILED: The URL does not point to a valid PDF file` → the rewritten URL returns HTML; regex or URL pattern bug.
+   - `FETCH_FAILED: The URL does not point to a valid PDF file` → the rewritten URL returns HTML; regex or URL pattern bug — or a stale-sig paywall misreport (see PDF Issues).
    - `DRIVER_FAILED: No driver match` → test URL migrated to a different publisher; update test URL or add URL pattern.
    - `ACCESS_RESTRICTED` ± `LOGIN_REQUIRED` → working correctly; check test `restricted:` expectation.
 3. **Priority order**:
@@ -297,11 +266,13 @@ When asked to fix many failing tests, triage this way:
    - Captcha/Cloudflare — document with `description` in tests, don't attempt to bypass.
 4. **Blocked locally vs in user's env**: If you see `Blocked by Cloudflare captcha` on *every* fetch, it's your IP. The user's test runner env is often not CF-blocked, so logic fixes still land even if verification has to wait.
 
+---
+
 ## Adding New Tips
 
 When you discover a new pattern:
 
-1. Identify the symptom clearly
-2. Document the root cause
-3. Provide the fix with example code if applicable
-4. Add to appropriate section above
+1. **Generic pattern** (applies across publishers/drivers) → document it here: symptom, root cause, fix, example.
+2. **Driver-specific finding** → write it as a comment ON the driver rule/sig in pdf.ts / meta.ts / urlPatterns.ts / driverFunctions/* (with a date for markup-drift fixes). Do NOT add it here.
+3. **Platform pattern** (Anubis, DSpace, Webroute — many sites, one mechanism) → the "Anti-Bot & SPA Platform Patterns" section here, with pointers to the canonical implementation.
+4. If a fix teaches BOTH a generic lesson and a publisher quirk: generic lesson here, quirk in the code comment.
