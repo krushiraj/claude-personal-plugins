@@ -5,10 +5,16 @@
 //
 //   node bin/log-acquire.js <caseFolder>
 //
-// Gets the full crawler logs for a case: tries S3 first, falls back to
-// re-running the crawler locally. The fallback log (success OR crawler-failure)
-// is exactly what the downstream `classify` step needs, so a failed crawl is a
-// SUCCESS for this tool — we still captured its output.
+// Gets the full crawler logs for a case. Backends, in order:
+//   1. attached — the case carries an extension pdf-crawl-log JSON
+//      (logs/attached.json, from intake --log-file/--logs-dir): replay it
+//      OFFLINE via `yarn crawler:debug:replay` and record 'replay' provenance.
+//      Deterministic, fast, no network — and never falls through to a live
+//      crawl (the attached log IS the crawl).
+//   2. s3 (stub) / local re-run, as before. The fallback log (success OR
+//      crawler-failure) is exactly what the downstream `classify` step needs,
+//      so a failed crawl is a SUCCESS for this tool — we still captured its
+//      output.
 //
 // S3 is a documented stub (see src/logAcquire.js): there is no discoverable
 // crawler-log bucket/scheme, so S3 is only attempted when CRAWLER_LOG_BUCKET is
