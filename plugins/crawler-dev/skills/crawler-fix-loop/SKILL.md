@@ -28,8 +28,11 @@ tools/cases/<date>-<slug>-<hash8>/
 Modeled on YAML-as-source-of-truth: runs are resumable, clusterable, and a subagent
 can pick up a half-finished case.
 
-**Intake is polymorphic** — a raw URL, a DOI, a Notion page-id, or a `--sweep-new`
-status sweep all normalize to the same case file.
+**Intake is polymorphic** — a raw URL, a DOI, a Notion page-id, a `--sweep-new`
+status sweep, or a REAL extension-uploaded pdf-crawl-log JSON (`--log-file` /
+`--logs-dir`) all normalize to the same case file. Extension-log cases carry the
+source JSON as `logs/attached.json`, which log-acquire replays OFFLINE via
+`yarn crawler:debug:replay` (no live crawl).
 
 ## Stage map
 
@@ -81,8 +84,11 @@ All under `tools/`. Run from `tools/` (e.g.
 | `node bin/intake.js --doi <d>` | Build a case from a DOI |
 | `node bin/intake.js --page <id>` | Build a case from a Notion report page-id |
 | `node bin/intake.js --sweep-new [status] [--limit N]` | Sweep reports by status into cases |
-| `node bin/log-acquire.js <caseFolder>` | Acquire logs (S3 stub → local `crawler:debug`), set `case.logs` |
+| `node bin/intake.js --log-file <path>` | Build a case from one extension pdf-crawl-log JSON (attaches it) |
+| `node bin/intake.js --logs-dir <dir> [--limit N]` | Sweep a dir of `*_pdf-crawl-log_*.json` exports into cases |
+| `node bin/log-acquire.js <caseFolder>` | Acquire logs (attached → offline `crawler:debug:replay`; else S3 stub → local `crawler:debug`), set `case.logs` |
 | `node bin/triage.js [--limit N] [--status New] [--skip-sweep]` | Full sweep: intake → acquire → classify → cluster → board |
+| `node bin/triage.js --logs-dir <dir> [--limit N]` | Same pipeline over extension crawl-log exports (offline replay, no Notion) |
 
 - `triage.js` default `--limit` is **5** because each case runs a real crawl and
   there are >100 New reports. `--skip-sweep` triages existing case folders (un-triaged
@@ -99,9 +105,13 @@ From the classifier:
 | `success` | Reproduced fine — data was obtainable (possibly transient / already fixed) |
 | `referer-required` | 403/401 on the PDF link; works with a `referer` |
 | `proxy-needed` | Access denied with proxy off — institutional access required |
+| `access-restricted` | Extension verdict: paywall / no entitlement for this user |
+| `proxy-logged-out` | Extension verdict: institutional proxy session expired |
+| `site-not-supported` | Extension verdict: no driver supports this site |
 | `blocked-paywall` | Hard paywall / no full text available |
 | `network` | Timeout / ECONN / transport failure |
 | `js-rendered` | Empty in node but content exists in browser (client-rendered) |
+| `pdf-url-not-pdf` | Driver derived a PDF URL but the response wasn't a PDF (driver-vs-site drift) |
 | `selector-drift` | Page reachable but the selector/`JqMeta` no longer matches |
 | `doi-resolution-fail` | DOI didn't resolve to a usable publisher URL |
 | `unknown` | Didn't match any rule — needs a human look |
