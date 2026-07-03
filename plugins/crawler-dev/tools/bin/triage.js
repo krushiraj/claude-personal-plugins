@@ -187,7 +187,9 @@ function triageOne(folder, deps = {}) {
   const acquire = deps.acquire || defaultAcquire;
   let caseObj = readCase(folder);
 
-  if (!caseObj.logs) {
+  // 'attached' provenance is the raw extension JSON, not yet a crawl log —
+  // acquire turns it into logs/replay.log (offline). Missing logs -> live crawl.
+  if (!caseObj.logs || caseObj.logs.provenance === 'attached') {
     acquire(folder); // throws on failure/timeout
     caseObj = readCase(folder);
   }
@@ -200,10 +202,15 @@ function triageOne(folder, deps = {}) {
   }
 
   const logText = fs.readFileSync(caseObj.logs.path, 'utf8');
-  caseObj.diagnosis = classify(logText, {
-    mode: caseObj.mode,
-    proxyUsed: caseObj.proxyUsed,
-  });
+  const ctx = { mode: caseObj.mode, proxyUsed: caseObj.proxyUsed };
+  if (caseObj.errorMsg) {
+    // Extension-reported cases: the extension's own verdict is authoritative
+    // (classify short-circuits on it). CRAWLER_FAILED maps to null, so those
+    // cases are classified from the REPLAY log text by the rules.
+    ctx.extensionVerdict = extensionVerdict(caseObj.errorMsg);
+    ctx.errorMsg = caseObj.errorMsg;
+  }
+  caseObj.diagnosis = classify(logText, ctx);
   updateCase(folder, caseObj);
   return caseObj;
 }
