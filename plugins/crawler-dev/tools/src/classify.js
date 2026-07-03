@@ -56,6 +56,18 @@ const RE_ANTIBOT = /Cloudflare|Anubis|reCAPTCHA|Just a moment|ISTL-INFINITE-LOOP
 // Referer-required: a 401/403 (in http context) specifically on a .pdf fetch.
 const RE_PDF_DENIED = /(?:HTTP|status|code|response).{0,12}(?:401|403)\b.*\.pdf|\.pdf.*(?:HTTP|status|code|response).{0,12}(?:401|403)\b/i;
 
+// Extension-verdict markers: the crawler's own error tokens, printed in the
+// `Crawler failed: { errors: [...] }` line (and echoed by the extension's
+// errorMsg). Matched as whole tokens so prose can't trip them.
+const RE_EXT_ACCESS_RESTRICTED = /\bACCESS_RESTRICTED\b/;
+const RE_EXT_PROXY_LOGGED_OUT = /\bPROXY_LOGGED_OUT\b/;
+const RE_EXT_SITE_NOT_SUPPORTED = /\bSITE_NOT_SUPPORTED\b/;
+
+// Replay-visible deep cause: the driver derived a PDF URL but the response
+// wasn't a PDF (driver-vs-site drift). Real marker from shared/src/crawler/
+// utils.ts: err('FETCH_FAILED', 'The URL does not point to a valid PDF file').
+const RE_PDF_NOT_PDF = /does not point to a valid PDF file/i;
+
 // Network: transport-level failures (NOT http auth codes).
 const RE_NETWORK = /FETCH_FAILED|aborted|timed?\s?out|timeout|ETIMEDOUT|ECONNRESET|ECONNREFUSED|ENOTFOUND|EAI_AGAIN|socket hang up|\bDNS\b|getaddrinfo/i;
 
