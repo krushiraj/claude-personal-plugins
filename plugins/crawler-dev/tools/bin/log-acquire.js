@@ -120,12 +120,37 @@ function main() {
   }
 
   const caseObj = readCase(folder);
+  const logsDir = path.join(folder, 'logs');
+  fs.mkdirSync(logsDir, { recursive: true });
+
+  // 0) Attached extension crawl log -> offline replay. NEVER falls through to
+  // a live crawl: the attached log already IS the crawl we want to diagnose.
+  const attached = caseObj.logs && caseObj.logs.provenance === 'attached' && caseObj.logs.path;
+  if (attached && fs.existsSync(attached)) {
+    const attachedPath = path.resolve(attached);
+    const out = runReplay(attachedPath);
+    if (out && out.trim()) {
+      const logPath = path.join(logsDir, 'replay.log');
+      fs.writeFileSync(logPath, out);
+      caseObj.logs = {
+        provenance: 'replay',
+        path: path.resolve(logPath),
+        attachedPath,
+        acquiredAt: new Date().toISOString(),
+      };
+      updateCase(folder, caseObj);
+      console.log(`logs: replay -> ${logPath}`);
+    } else {
+      // Replay produced nothing useful — keep the attached provenance so a
+      // human (or a fixed replay) can still work from the raw JSON.
+      console.log(`logs: attached (replay produced no output) -> ${attachedPath}`);
+    }
+    return;
+  }
+
   const mode = canonicalMode(caseObj.mode);
   const url = caseObj.publisherUrl || caseObj.url;
   if (!url) throw new Error('case has no publisherUrl/url to crawl');
-
-  const logsDir = path.join(folder, 'logs');
-  fs.mkdirSync(logsDir, { recursive: true });
 
   // 1) Try S3. An empty/whitespace object is a MISS, not a spurious 's3' hit.
   const s3Blob = tryS3(caseObj);
