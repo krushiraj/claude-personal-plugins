@@ -276,7 +276,9 @@ function main() {
     printCreated(folder, pageCase);
     return;
   } else {
-    console.error('Error: provide one of --url, --doi, --page, or --sweep-new.\n');
+    console.error(
+      'Error: provide one of --url, --doi, --page, --sweep-new, --log-file, or --logs-dir.\n'
+    );
     console.error(USAGE);
     process.exit(1);
   }
@@ -294,4 +296,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { caseFromUrl, caseFromDoi, parseArgs };
+module.exports = { caseFromUrl, caseFromDoi, caseFromLogFile, intakeLogFile, parseArgs };
