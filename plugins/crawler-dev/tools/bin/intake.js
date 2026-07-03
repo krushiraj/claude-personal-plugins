@@ -9,6 +9,11 @@
 //   --page <notionId>     fetch the Notion crawler-report row and parse it
 //   --sweep-new [status]  intake every report row in the given status (default New)
 //                         supports --limit N to cap how many rows are processed
+//   --log-file <path>     one case from one REAL extension pdf-crawl-log JSON;
+//                         the source JSON is COPIED into <case>/logs/attached.json
+//                         so log-acquire can replay it offline
+//   --logs-dir <dir>      sweep a directory of *_pdf-crawl-log_*.json exports
+//                         (supports --limit N; per-file resilient)
 //
 // Optional: --mode PDF|META  (default PDF; ignored for --page, which carries its own).
 
@@ -16,7 +21,8 @@ const path = require('path');
 const fs = require('fs');
 const { execFileSync } = require('child_process');
 const { parseReport } = require('../src/intake');
-const { writeCase } = require('../src/caseFile');
+const { parseExtensionLog, parseLogFilename } = require('../src/extensionLog');
+const { writeCase, updateCase } = require('../src/caseFile');
 const { parsePageStdout } = require('../src/parsePageStdout');
 const { parseReportRows } = require('../src/fetchReports');
 const { summarize } = require('../src/summarize');
