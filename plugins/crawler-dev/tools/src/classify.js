@@ -222,10 +222,34 @@ const RULES = [
 
 const DEFAULT_OBTAINABLE = { pdf: null, doi: null, abstract: null };
 
+// siteKind/obtainable for the direct extension-verdict path — kept consistent
+// with the same classes' RULES rows above.
+const VERDICT_SHAPE = {
+  'access-restricted': { siteKind: 'publisher-html', obtainable: { pdf: false } },
+  'proxy-logged-out': { siteKind: 'publisher-html', obtainable: { pdf: false } },
+  'blocked-paywall': { siteKind: 'publisher-html', obtainable: { pdf: false } },
+  'site-not-supported': { siteKind: 'unknown', obtainable: {} },
+};
+
 // classify(logText, ctx) -> { errorClass, siteKind, obtainable, evidence }
+//
+// ctx.extensionVerdict (a taxonomy class from extensionLog's extensionVerdict)
+// is AUTHORITATIVE when non-null: the extension already diagnosed the failure,
+// so we return it directly instead of re-deriving it from log text. A null
+// verdict (e.g. CRAWLER_FAILED) falls through to the rules.
 function classify(logText, ctx) {
   const text = typeof logText === 'string' ? logText : '';
   const c = ctx && typeof ctx === 'object' ? ctx : {};
+
+  if (typeof c.extensionVerdict === 'string' && c.extensionVerdict) {
+    const shape = VERDICT_SHAPE[c.extensionVerdict] || {};
+    return {
+      errorClass: c.extensionVerdict,
+      siteKind: shape.siteKind || 'unknown',
+      obtainable: Object.assign({}, DEFAULT_OBTAINABLE, shape.obtainable),
+      evidence: `extension verdict: ${c.errorMsg || c.extensionVerdict}`,
+    };
+  }
 
   for (const rule of RULES) {
     let evidence;
