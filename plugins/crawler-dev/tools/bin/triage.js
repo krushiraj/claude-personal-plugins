@@ -251,16 +251,22 @@ function main() {
   const limit = resolveLimit(args.limit);
   const skipSweep = !!args['skip-sweep'];
 
+  const logsDir = typeof args['logs-dir'] === 'string' ? args['logs-dir'] : null;
+
   // 1) Sweep (re)creates case folders unless explicitly skipped; capture them.
+  // --logs-dir replaces the Notion sweep with an extension-log intake.
   let sweptFolders = [];
-  if (!skipSweep) {
+  if (logsDir) {
+    sweptFolders = runLogsSweep(logsDir, limit);
+  } else if (!skipSweep) {
     sweptFolders = runSweep(status, limit);
   } else {
     console.error('> --skip-sweep: triaging existing case folders (un-triaged first)');
   }
 
-  // 2) Select + triage, resilient to per-case failures.
-  const folders = selectFolders({ skipSweep, sweptFolders, limit });
+  // 2) Select + triage, resilient to per-case failures. (--logs-dir behaves
+  // like a sweep: triage exactly the folders the intake just created.)
+  const folders = selectFolders({ skipSweep: skipSweep && !logsDir, sweptFolders, limit });
   const { cases, skipped } = triageFolders(folders);
 
   // 3) Cluster + render the board.
