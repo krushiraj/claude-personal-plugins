@@ -172,6 +172,17 @@ const RULES = [
     test: (text) => blockedEvidence(text),
   },
 
+  // Driver-vs-site drift: a PDF URL was derived but the response wasn't a
+  // PDF. Ordered BEFORE network because the crawler prints this cause on a
+  // FETCH_FAILED line (the network token would swallow it), and before
+  // selector-drift because it is the more specific extraction failure.
+  {
+    errorClass: 'pdf-url-not-pdf',
+    siteKind: 'publisher-html',
+    obtainable: { pdf: null, doi: null, abstract: null },
+    test: (text) => firstLine(text, RE_PDF_NOT_PDF),
+  },
+
   // tips.md "Network Issues": transport-level failure (timeout/DNS/abort/ECONN).
   {
     errorClass: 'network',
