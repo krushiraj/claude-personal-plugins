@@ -43,8 +43,10 @@ const RE_BLOCKED_URL = /blockedUrl:\s*'[^']+'/; // a non-null blockedUrl
 // HTTP 401/403 ONLY when adjacent to an http-context word — avoids matching
 // byte counts / ids like "(403 bytes)".
 const RE_HTTP_DENIED = /(?:HTTP|status|code|response).{0,12}(?:401|403)\b/i;
-// The crawler's explicit access error codes.
-const RE_ACCESS_CODE = /ACCESS_RESTRICTED|LOGIN_REQUIRED|PROXY_LOGGED_OUT/;
+// The crawler's explicit access error codes. ACCESS_RESTRICTED and
+// PROXY_LOGGED_OUT now have DEDICATED rules ordered above the generic
+// blocked rules (classify v2), so only LOGIN_REQUIRED remains generic here.
+const RE_ACCESS_CODE = /LOGIN_REQUIRED/;
 // Anti-bot interstitials (Cloudflare / Anubis / reCAPTCHA / "Just a moment").
 // tips.md "Anubis Challenge" + Diagnosis Workflow class these as BLOCKED, so
 // they live here, NOT in js-rendered — keeps the anti-bot cause clustering
