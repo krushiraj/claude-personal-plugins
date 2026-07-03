@@ -1,0 +1,59 @@
+{
+ "jobId": "a8d2b3b1-cdea-4931-b7a5-ffc1b22ea262",
+ "libraryId": "personal",
+ "pubId": "421675e6-cedd-0d63-ae31-036dcbfc01d9",
+ "doi": "10.1159/000347069",
+ "title": "Anterior choroidal artery territory infarction: lesions confined to versus beyond the internal capsule",
+ "pubUrls": [
+  "http://dx.doi.org/10.1159/000347069",
+  "https://www.ncbi.nlm.nih.gov/pubmed/23548698",
+  "https://www.karger.com?DOI=10.1159/000347069"
+ ],
+ "source": "webapp",
+ "errorMsg": "CRAWLER_FAILED",
+ "blockedUrl": null,
+ "inputUrls": {
+  "publisher": [
+   "https://www.karger.com/Article/Pdf/347069"
+  ],
+  "preprint": []
+ },
+ "processedUrls": [
+  "http://www.karger.com/Article/Pdf/347069",
+  "https://www.karger.com/Article/Pdf/347069",
+  "http://dx.doi.org/10.1159/000347069",
+  "https://dx.doi.org/10.1159/000347069",
+  "http://doi.org/10.1159/000347069",
+  "https://doi.org/10.1159/000347069",
+  "http://www.karger.com?DOI=10.1159/000347069",
+  "https://www.karger.com?DOI=10.1159/000347069",
+  "http://karger.com/article/doi/10.1159/000347069",
+  "https://karger.com/article/doi/10.1159/000347069"
+ ],
+ "collectedLogs": [
+  {
+   "request": {
+    "url": "https://www.karger.com/Article/Pdf/347069",
+    "method": "GET",
+    "body": null
+   },
+   "response": {
+    "url": "https://karger.com/crawlprevention/governor?content=%2fHTTPHandlers%2fArticlePdfHandler.ashx%3fjournal%3dced%26multimediaId%3d2351107%26volume%3d35%26issue%3d3%26page%3d228%26filename%3d000347069.pdf%26languageId%3d",
+    "status": 200,
+    "body": "<!DOCTYPE html>\r\n\r\n<html lang=\"en\">\r\n\r\n<head>\r\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=Edge\">\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1\" />\r\n ...[trimmed]"
+   }
+  },
+  {
+   "request": {
+    "url": "https://www.karger.com/Article/Pdf/347069",
+    "method": "GET",
+    "body": null
+   },
+   "response": {
+    "url": "https://karger.com/crawlprevention/governor?content=%2fHTTPHandlers%2fArticlePdfHandler.ashx%3fjournal%3dced%26multimediaId%3d2351107%26volume%3d35%26issue%3d3%26page%3d228%26filename%3d000347069.pdf%26languageId%3d",
+    "status": 200,
+    "body": "<!DOCTYPE html>\r\n\r\n<html lang=\"en\">\r\n\r\n<head>\r\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=Edge\">\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1\" />\r\n ...[trimmed]"
+   }
+  }
+ ]
+}
