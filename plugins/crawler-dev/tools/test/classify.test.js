@@ -144,6 +144,73 @@ test('Anubis challenge without BLOCKED marker -> blocked-paywall', () => {
   ).toBe('proxy-needed');
 });
 
+// --- classify v2: extension-verdict markers + replay deep causes ---
+
+test('ACCESS_RESTRICTED marker -> access-restricted (even with proxy off)', () => {
+  const log = "Crawler failed: { errors: [ 'ACCESS_RESTRICTED' ], blockedUrl: null }";
+  expect(classify(log, { mode: 'PDF' }).errorClass).toBe('access-restricted');
+  // ordered BEFORE the generic blocked rules: proxy-off must not win it
+  expect(classify(log, { mode: 'PDF', proxyUsed: false }).errorClass).toBe('access-restricted');
+});
+
+test('PROXY_LOGGED_OUT marker -> proxy-logged-out', () => {
+  const log = "Crawler failed: { errors: [ 'PROXY_LOGGED_OUT' ], blockedUrl: null }";
+  expect(classify(log, { mode: 'PDF' }).errorClass).toBe('proxy-logged-out');
+  expect(classify(log, { mode: 'PDF', proxyUsed: false }).errorClass).toBe('proxy-logged-out');
+});
+
+test('SITE_NOT_SUPPORTED marker -> site-not-supported', () => {
+  const log = "Crawler failed: { errors: [ 'SITE_NOT_SUPPORTED' ], blockedUrl: null }";
+  expect(classify(log, { mode: 'PDF' }).errorClass).toBe('site-not-supported');
+});
+
+test('derived PDF URL that is not a PDF -> pdf-url-not-pdf (not network, not selector-drift)', () => {
+  // real marker from shared/src/crawler/utils.ts, printed by the replay as
+  // an error line that ALSO carries the FETCH_FAILED token.
+  const log = [
+    '[info] Found driver: Silverchair',
+    '[error] FETCH_FAILED: The URL does not point to a valid PDF file',
+    "Crawler failed: { errors: [ 'CRAWLER_FAILED' ], blockedUrl: null }",
+  ].join('\n');
+  const r = classify(log, { mode: 'PDF' });
+  expect(r.errorClass).toBe('pdf-url-not-pdf');
+  expect(r.evidence).toMatch(/does not point to a valid PDF file/);
+});
+
+test('pdf-url-not-pdf is ordered before selector-drift', () => {
+  const log = [
+    '[error] The URL does not point to a valid PDF file',
+    '[warn] JqMeta: no citation_pdf_url found on page',
+  ].join('\n');
+  expect(classify(log, { mode: 'PDF' }).errorClass).toBe('pdf-url-not-pdf');
+});
+
+test('ctx.extensionVerdict is authoritative and short-circuits the rules', () => {
+  const r = classify('Result PDF: /tmp/x.pdf', {
+    mode: 'PDF',
+    extensionVerdict: 'blocked-paywall',
+    errorMsg: 'BLOCKED',
+  });
+  expect(r.errorClass).toBe('blocked-paywall');
+  expect(r.evidence).toBe('extension verdict: BLOCKED');
+});
+
+test('null ctx.extensionVerdict falls through to the rules', () => {
+  const r = classify('Result PDF: /tmp/x.pdf', {
+    mode: 'PDF',
+    extensionVerdict: null,
+    errorMsg: 'CRAWLER_FAILED',
+  });
+  expect(r.errorClass).toBe('success');
+});
+
+test('extension-verdict classes keep the documented result shape', () => {
+  const r = classify('whatever', { extensionVerdict: 'access-restricted', errorMsg: 'ACCESS_RESTRICTED' });
+  expect(r).toHaveProperty('siteKind');
+  expect(r).toHaveProperty('obtainable.pdf');
+  expect(r.obtainable.pdf).toBe(false);
+});
+
 test('shape: always returns the documented keys', () => {
   const r = classify(read('log-network.txt'), { mode: 'PDF' });
   expect(r).toHaveProperty('errorClass');
