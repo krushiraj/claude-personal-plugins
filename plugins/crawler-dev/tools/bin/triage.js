@@ -4,11 +4,15 @@
 // triage CLI shell — the "fix once, close many" orchestrator (Task 6).
 //
 //   node bin/triage.js [--limit N] [--status New] [--skip-sweep]
+//   node bin/triage.js --logs-dir <dir> [--limit N]
 //
 // Pipeline (composes Tasks 1-5; no core edits):
 //   1. Unless --skip-sweep: run intake's sweep to (re)create case folders and
 //      CAPTURE the folders it just created (intake prints them) — those exact
 //      fresh cases are what we triage, NOT whatever happens to sort first on disk.
+//      With --logs-dir, the Notion sweep is replaced by intake --logs-dir over a
+//      directory of extension pdf-crawl-log exports; log acquisition is then an
+//      OFFLINE `crawler:debug:replay` of each attached log (fast, no network).
 //   2. For each selected case folder:
 //        a. readCase(folder)
 //        b. if no case.logs -> run bin/log-acquire.js (with a timeout), re-read

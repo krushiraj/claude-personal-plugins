@@ -201,4 +201,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { runLocalCrawler };
+module.exports = { runLocalCrawler, runReplay, runYarnScript };
