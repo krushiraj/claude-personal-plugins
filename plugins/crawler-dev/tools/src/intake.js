@@ -9,23 +9,7 @@
 // Every field may be missing; this function must never throw.
 
 const { canonicalMode } = require('./modes');
-
-// Hosts that are NOT the real publisher (resolver / index links).
-function isPublisherHost(host) {
-  if (!host) return false;
-  if (host.endsWith('doi.org')) return false;
-  if (host.includes('ncbi.nlm.nih.gov')) return false;
-  return true;
-}
-
-function hostOf(url) {
-  if (!url) return undefined;
-  try {
-    return new URL(url).hostname;
-  } catch (e) {
-    return undefined;
-  }
-}
+const { isPublisherHost, hostOf } = require('./urls');
 
 // Join all rich_text plain_text segments, or undefined when empty.
 function richText(prop) {
