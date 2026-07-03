@@ -34,6 +34,9 @@ const SHARED_DIR =
   process.env.CRAWLER_SHARED_DIR ||
   '/Users/krushi/work/paperpile/js/shared';
 const MAX_BUFFER = 64 * 1024 * 1024;
+// Offline replays are fast (~10s), but ts-node startup + a big log deserves
+// headroom. A hung replay is killed and we keep the attached provenance.
+const REPLAY_TIMEOUT_MS = 120000;
 
 // Is the `aws` CLI available on PATH?
 function awsAvailable() {
