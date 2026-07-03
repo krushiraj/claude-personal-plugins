@@ -112,6 +112,43 @@ describe('triageOne', () => {
   });
 });
 
+describe('triageOne (extension-log cases)', () => {
+  test('attached provenance is NOT a crawl log: acquire runs (replay) before classify', () => {
+    const attached = tmpLog('{"collectedLogs":[]}');
+    const replayLog = tmpLog("Crawler failed: { errors: [ 'CRAWLER_FAILED' ], blockedUrl: null }\n[error] FETCH_FAILED: The URL does not point to a valid PDF file");
+    const dir = tmpCase({
+      slug: 'ext',
+      domain: 'x.org',
+      mode: 'PDF',
+      errorMsg: 'CRAWLER_FAILED',
+      logs: { provenance: 'attached', path: attached },
+    });
+    const acquire = jest.fn((folder) => {
+      const c = readCase(folder);
+      c.logs = { provenance: 'replay', path: replayLog, attachedPath: attached };
+      updateCase(folder, c);
+    });
+    const result = triageOne(dir, { acquire });
+    expect(acquire).toHaveBeenCalledTimes(1);
+    // CRAWLER_FAILED verdict is null -> classified from the REPLAY log text
+    expect(result.diagnosis.errorClass).toBe('pdf-url-not-pdf');
+  });
+
+  test('a non-null extension verdict is authoritative over the log text', () => {
+    const replayLog = tmpLog('Result PDF: /tmp/x.pdf'); // would classify success
+    const dir = tmpCase({
+      slug: 'ext-blocked',
+      domain: 'x.org',
+      mode: 'PDF',
+      errorMsg: 'ACCESS_RESTRICTED',
+      logs: { provenance: 'replay', path: replayLog },
+    });
+    const result = triageOne(dir, { acquire: jest.fn() });
+    expect(result.diagnosis.errorClass).toBe('access-restricted');
+    expect(result.diagnosis.evidence).toBe('extension verdict: ACCESS_RESTRICTED');
+  });
+});
+
 describe('triageFolders (resilience)', () => {
   test('a throwing case is skipped and the loop continues to the next', () => {
     const goodLog = tmpLog(BLOCKED_LOG);
