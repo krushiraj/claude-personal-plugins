@@ -67,21 +67,39 @@ function tryS3(caseObj) {
   }
 }
 
-// Re-run the crawler locally and capture stdout+stderr. spawnSync (not
-// execFileSync) so we ALWAYS get both streams regardless of exit code —
-// crawler:debug logs to stderr too, and a passing crawl's log would otherwise be
+// Run a yarn script in the shared repo and capture stdout+stderr. spawnSync
+// (not execFileSync) so we ALWAYS get both streams regardless of exit code —
+// the crawler logs to stderr too, and a passing crawl's log would otherwise be
 // nearly empty. A non-zero exit (the crawler failing) is NOT an error for us.
-// `opts` (cmd/args/cwd) is injectable so tests can point at a tiny fake script.
-function runLocalCrawler(url, mode, opts = {}) {
+// `opts` (cmd/args/cwd/timeout) is injectable so tests can point at a fake script.
+function runYarnScript(argv, opts = {}) {
   const cmd = opts.cmd || 'yarn';
-  const argv = opts.args || ['crawler:debug', url, mode];
+  const args = opts.args || argv;
   const cwd = opts.cwd || SHARED_DIR;
-  const r = spawnSync(cmd, argv, { cwd, encoding: 'utf8', maxBuffer: MAX_BUFFER });
+  const r = spawnSync(cmd, args, {
+    cwd,
+    encoding: 'utf8',
+    maxBuffer: MAX_BUFFER,
+    timeout: opts.timeout,
+  });
   const parts = [];
   if (r.stdout) parts.push(r.stdout);
   if (r.stderr) parts.push(r.stderr);
-  if (!parts.length && r.error) parts.push(`crawler:debug could not run: ${r.error.message}`);
+  if (!parts.length && r.error) parts.push(`${argv[0]} could not run: ${r.error.message}`);
   return parts.join('\n');
+}
+
+// Re-run the crawler locally (live).
+function runLocalCrawler(url, mode, opts = {}) {
+  return runYarnScript(['crawler:debug', url, mode], opts);
+}
+
+// Replay an attached extension crawl log OFFLINE (deterministic, no network).
+function runReplay(attachedPath, opts = {}) {
+  return runYarnScript(
+    ['crawler:debug:replay', attachedPath],
+    Object.assign({ timeout: REPLAY_TIMEOUT_MS }, opts)
+  );
 }
 
 function main() {
