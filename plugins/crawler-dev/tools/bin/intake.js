@@ -35,7 +35,9 @@ const USAGE = `Usage:
   node bin/intake.js --url <publisherUrl> [--mode PDF|META]
   node bin/intake.js --doi <doi> [--mode PDF|META]
   node bin/intake.js --page <notionPageId>
-  node bin/intake.js --sweep-new [status] [--limit N]`;
+  node bin/intake.js --sweep-new [status] [--limit N]
+  node bin/intake.js --log-file <pdfCrawlLog.json>
+  node bin/intake.js --logs-dir <dir> [--limit N]`;
 
 // Tiny flag parser: --key value pairs into a plain object.
 function parseArgs(argv) {
@@ -179,8 +181,83 @@ function sweep(status, limit) {
   for (const folder of [...new Set(created)]) console.log(`  ${folder}`);
 }
 
+// Ops export filename pattern for extension crawl logs.
+const LOG_FILE_RE = /_pdf-crawl-log_.*\.json$/;
+
+// Parse one extension pdf-crawl-log JSON into a case object (pure-ish: reads
+// the file, delegates shaping to src/extensionLog).
+function caseFromLogFile(file) {
+  const abs = path.resolve(file);
+  const json = JSON.parse(fs.readFileSync(abs, 'utf8'));
+  const meta = Object.assign({ sourceFile: abs }, parseLogFilename(abs) || {});
+  const caseObj = parseExtensionLog(json, meta);
+  caseObj.status = caseObj.status || 'intake';
+  return caseObj;
+}
+
+// Intake one extension log: write the case folder, COPY the source JSON in as
+// logs/attached.json, and record 'attached' provenance so log-acquire replays
+// it offline instead of running a live crawl. `baseDir` injectable for tests.
+function intakeLogFile(file, baseDir) {
+  const abs = path.resolve(file);
+  const caseObj = caseFromLogFile(abs);
+  const folder = writeCase(baseDir || CASES_DIR, caseObj);
+
+  const logsDir = path.join(folder, 'logs');
+  fs.mkdirSync(logsDir, { recursive: true });
+  const attached = path.join(logsDir, 'attached.json');
+  fs.copyFileSync(abs, attached);
+
+  caseObj.logs = {
+    provenance: 'attached',
+    path: path.resolve(attached),
+    acquiredAt: new Date().toISOString(),
+  };
+  updateCase(folder, caseObj);
+  return { folder, caseObj };
+}
+
+// Sweep a directory of *_pdf-crawl-log_*.json exports, resilient per file.
+// Prints the same summary + indented-folders shape as the Notion sweep so
+// bin/triage.js can capture the created folders.
+function sweepLogsDir(dir, limit) {
+  let files = fs
+    .readdirSync(dir)
+    .filter((f) => LOG_FILE_RE.test(f))
+    .sort()
+    .map((f) => path.join(dir, f));
+  if (limit > 0) files = files.slice(0, limit);
+
+  const created = [];
+  let skipped = 0;
+  for (const file of files) {
+    try {
+      const { folder } = intakeLogFile(file);
+      created.push(folder);
+    } catch (err) {
+      skipped++;
+      console.error(`skip ${path.basename(file)}: ${(err && err.message) || err}`);
+    }
+  }
+
+  console.log(summarize(created, skipped, files.length, 'extension-log'));
+  for (const folder of [...new Set(created)]) console.log(`  ${folder}`);
+}
+
 function main() {
   const args = parseArgs(process.argv.slice(2));
+
+  if (args['logs-dir'] && typeof args['logs-dir'] === 'string') {
+    const limit = typeof args.limit === 'string' ? parseInt(args.limit, 10) : 0;
+    sweepLogsDir(args['logs-dir'], limit);
+    return;
+  }
+
+  if (args['log-file'] && typeof args['log-file'] === 'string') {
+    const { folder, caseObj } = intakeLogFile(args['log-file']);
+    printCreated(folder, caseObj);
+    return;
+  }
 
   if (args['sweep-new']) {
     const status = typeof args['sweep-new'] === 'string' ? args['sweep-new'] : 'New';
