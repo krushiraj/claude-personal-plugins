@@ -23,6 +23,23 @@ Accumulated knowledge for common crawler fixes. Check here before investigating 
 - **Fix**: Use `rewrite` step to skip directly to final URL pattern
 - **Example**: If `/article/123` redirects to `/article/123/pdf`, use rewrite to go direct
 
+### citation_pdf_url Is Stale (Early-Access / Springer `_reference.pdf`)
+- **Symptom**: `citation_pdf_url` meta points to a URL that 404s (even in a real browser with cookies), yet the page's own "Download PDF" button works
+- **Cause**: Publisher's meta tag lags the actual asset. Known case: Springer early-access/unedited manuscripts — `content/pdf/<doi>.pdf` doesn't exist yet; the real PDF is `content/pdf/<doi>_reference.pdf`
+- **Diagnose**: In page context run `fetch(citationPdfUrl).then(r => r.status)` (404) and compare with `document.querySelector('a[data-track-action="download pdf"]').href`
+- **Fix**: Add a fallback match rule for the real download anchor AFTER the citation_pdf_url rule (rules run in order until one yields a valid PDF):
+  ```typescript
+  { steps: [{ match: 'href="([^"]+_reference\\.pdf)"[^>]*class="c-pdf-download__link"' }] }
+  ```
+- **Fixed**: 2026-07 Springer Link (BMC 10.1186 early-access cluster, 9 reports)
+
+### Stale pdf_restricted_sigs (Paywall Misreported as CRAWLER_FAILED)
+- **Symptom**: Paywalled article fails with generic `CRAWLER_FAILED` instead of `ACCESS_RESTRICTED`; PDF URL returns HTTP 200 with an HTML paywall page
+- **Cause**: Publisher changed paywall markup; none of the driver's `pdf_restricted_sigs` (urlPatterns.ts) match anymore — sigs rot silently
+- **Diagnose**: Grep the captured page body (extension pdf-crawl-log `collectedLogs[].response.body`) for each existing sig — if all miss, find what the current paywall actually says
+- **Fix**: Add the current paywall markers to `pdf_restricted_sigs`. Prefer explicit commerce phrases ('Buy this article') over generic words
+- **Fixed**: 2026-07 Nature ('Buy this article', 'Access options'). Suspected same rot: Taylor & Francis, Cambridge, Karger
+
 ### JqMeta Fails but PDF URL Exists
 - **Symptom**: `fn: 'JqMeta'` returns nothing, but PDF URL is in page source
 - **Check**: Look for non-standard meta tag names:
