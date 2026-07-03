@@ -35,6 +35,7 @@ const fs = require('fs');
 const { spawnSync } = require('child_process');
 const { readCase, updateCase } = require('../src/caseFile');
 const { classify } = require('../src/classify');
+const { extensionVerdict } = require('../src/extensionLog');
 const { clusterCases, renderBoard } = require('../src/triage');
 
 const TOOLS_DIR = path.join(__dirname, '..');
@@ -109,6 +110,24 @@ function runSweep(status, limit) {
   if (r.stderr) process.stderr.write(r.stderr);
   if (r.status !== 0) {
     console.error('warning: sweep exited non-zero; continuing with what it created');
+  }
+  return parseCreatedFolders(stdout);
+}
+
+// Like runSweep, but over a directory of extension pdf-crawl-log exports
+// (intake --logs-dir prints the same summary + indented-folders shape).
+function runLogsSweep(dir, limit) {
+  console.error(`> intaking extension crawl logs from ${dir} (limit ${limit})...`);
+  const r = spawnSync(
+    process.execPath,
+    [INTAKE_BIN, '--logs-dir', dir, '--limit', String(limit)],
+    { cwd: TOOLS_DIR, encoding: 'utf8', maxBuffer: MAX_BUFFER }
+  );
+  const stdout = r.stdout || '';
+  if (stdout) process.stderr.write(stdout);
+  if (r.stderr) process.stderr.write(r.stderr);
+  if (r.status !== 0) {
+    console.error('warning: logs-dir intake exited non-zero; continuing with what it created');
   }
   return parseCreatedFolders(stdout);
 }
