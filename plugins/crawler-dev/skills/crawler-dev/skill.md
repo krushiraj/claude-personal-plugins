@@ -132,27 +132,35 @@ For any other files, explain the reasoning and ask before modifying:
 
 ## Commands Reference
 
+All run from `js/shared`.
+
 | Command | Purpose |
 |---------|---------|
-| `yarn crawler:debug <url> META` | Debug metadata extraction in Node.js |
-| `yarn crawler:debug <url> PDF` | Debug PDF extraction in Node.js |
+| `yarn crawler:debug <url> META\|PDF` | Debug extraction in Node.js, live network |
+| `yarn crawler:debug:replay <log.json>` | **Replay a recorded crawl offline** — responses served from the log, exact user conditions |
+| `yarn crawler:debug:chrome <url> META\|PDF` | Headful Chrome + MV3 test extension (`test/crawler/testExtension/`), needed for `chrome.*` APIs |
 | `yarn crawler:e2e` | Run e2e tests in Node.js context |
 | `yarn crawler:e2e:chrome` | Run e2e tests in Chrome browser context |
 
+`crawler:debug:replay` is the highest-signal tool when a log exists — it is deterministic, needs no
+network, and reproduces the user's access rights and proxy. See tips.md for its caveats.
+
 ### Filtering e2e Tests
 
-Edit `filterTestsToRun` in `test/crawler/e2e.test.ts`:
+Use env vars — no file edits, nothing to revert:
 
-```typescript
-// Run single driver (all tests)
-{ META: { 'DriverName': true }, PDF: false }
-
-// Run single test from driver
-{ META: { 'DriverName': { 0: true } }, PDF: false }
-
-// Run both META and PDF for a driver
-{ META: { 'DriverName': true }, PDF: { 'DriverName': true } }
+```bash
+CRAWLER_MODE=PDF CRAWLER_PROVIDER="PubMed Central" npx jest test/crawler/e2e.test.ts
+CRAWLER_MODE=PDF CRAWLER_PROVIDER=PenSoft CRAWLER_TEST=2 npx jest test/crawler/e2e.test.ts
 ```
+
+- `CRAWLER_MODE` — `META` or `PDF`; omit for both
+- `CRAWLER_PROVIDER` — driver name, quoted if it contains spaces
+- `CRAWLER_TEST` — numeric index of a single test within that driver
+
+Any env var switches the suite to env-filter mode. With none set it falls back to the
+`filterTestsToRun` const in `test/crawler/e2e.test.ts`, which you can edit instead — but that dirties
+a tracked file, so prefer the env vars.
 
 ## Key Files
 
