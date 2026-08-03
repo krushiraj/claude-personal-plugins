@@ -310,10 +310,15 @@ Call built-in function:
 
 When asked to fix many failing tests, triage this way:
 
+0. **Rule out throttling first.** Check recorded HTTP status and body length before grouping anything
+   — see "Throttled Body Looks Like a Driver Bug". Skipping this step produces a triage board full of
+   driver bugs that do not exist.
 1. **Run `yarn crawler:e2e:chrome` for each provider** to get pass/fail counts.
 2. **Group failures by type** from the crawler logs:
+   - `RATE_LIMITED` (429/420) → the site is throttling us; nothing to fix in the driver.
    - `BLOCKED` (populated `blockedUrl`) → Cloudflare / captcha / AWS WAF; rarely fixable from our side.
-   - `CRAWLER_FAILED` with `blockedUrl: null` → rule logic issue; try to fix.
+   - `CRAWLER_FAILED` with `blockedUrl: null` → rule logic issue **only after step 0 clears it**. On
+     logs captured before [ID-2662] this bucket still hides rate limits.
    - `FETCH_FAILED: The URL does not point to a valid PDF file` → the rewritten URL returns HTML; regex or URL pattern bug — or a stale-sig paywall misreport (see PDF Issues).
    - `DRIVER_FAILED: No driver match` → test URL migrated to a different publisher; update test URL or add URL pattern.
    - `ACCESS_RESTRICTED` ± `LOGIN_REQUIRED` → working correctly; check test `restricted:` expectation.
