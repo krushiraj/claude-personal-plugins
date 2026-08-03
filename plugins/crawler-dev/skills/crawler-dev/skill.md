@@ -58,9 +58,13 @@ For a directory of logs, use the `crawler-fix-loop` skill's toolchain (`triage.j
    └── Keep max 2-3 rules per driver
 
 6. VERIFY
+   ├── Replay the original log again if you started from one — the strongest signal
    ├── Run: yarn crawler:debug <url> META
    ├── Run: yarn crawler:debug <url> PDF
    ├── Run: yarn crawler:e2e (filtered to driver)
+   ├── BASELINE any failures: git stash your change, re-run, compare failure SETS.
+   │   The e2e and PDF suites carry pre-existing failures — never call one a regression
+   │   without this step.
    ├── Run: yarn crawler:e2e:chrome (if browser-specific)
    └── Test in extension if needed
 
