@@ -285,6 +285,24 @@ Call built-in function:
 
 ### Replay Real User Crawls Offline
 - Extension-uploaded `*_pdf-crawl-log_*.json` files replay deterministically with `yarn crawler:debug:replay <file>` — no network, exact user conditions. The captured `collectedLogs[].response.body` is also the ground truth for testing sigs/regexes. See the `crawler-fix-loop` skill for the triage toolchain.
+- Fetch a corpus with `js/shared/scripts/fetch-pdf-crawl-logs.sh <hyperdx.csv>` — it pulls from S3 and
+  sorts each file into a subdirectory named after its top-level `errorMsg` (`CRAWLER_FAILED/`,
+  `BLOCKED/`, `PROXY_LOGGED_OUT/`, …). Sweep a whole directory with `triage.js --logs-dir <dir>`.
+
+**Replay caveats — know these before trusting a result:**
+
+1. **A cache miss silently hits the live network.** Watch for
+   `[Replay] No log for <url>, falling back to network`. Those steps reflect the site today and your
+   IP, not the recorded crawl. A replay that "now succeeds" is often just this.
+2. **PDF bodies are stubbed.** Captured as `[PDF content skipped]` and replayed as a literal
+   `%PDF-1.7`, so PDF-signature checks pass trivially. These logs diagnose crawl *routing* only,
+   never PDF *parsing*.
+3. **Response headers only exist in logs captured after [ID-2662].** Older logs replay with an empty
+   header set, so anything header-dependent (`Retry-After`, `cf-mitigated`, `x-amzn-waf-action`) is
+   not reproducible from them.
+4. **A log only replays the URLs it recorded.** If a fix makes the crawler follow a *new* URL, that
+   fetch goes live — which is a genuine end-to-end confirmation, but say so rather than calling it
+   an offline reproduction.
 
 ---
 
