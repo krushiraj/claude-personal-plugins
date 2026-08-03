@@ -170,9 +170,49 @@ Accumulated knowledge for common crawler fixes. Check here before investigating 
 - **Fix**: Report issue, usually requires publisher to fix
 
 ### Rate Limiting
-- **Symptom**: Works once, then fails with 429
+- **Symptom**: Works once, then fails with 429 — or every request returns 429/420 with an empty body
+- **Codes**: 429 is standard. **420** ("Enhance Your Calm") is used by `doi.org` and
+  `ieeexplore.ieee.org`, usually with `len=0` bodies on *every* request in the crawl.
+- **Since [ID-2662]**: both are recorded as the `RATE_LIMITED` restriction instead of falling through
+  to `CRAWLER_FAILED`. If you see `RATE_LIMITED`, there is nothing to fix in the driver.
 - **Note**: Tests may be flaky due to rate limits
 - **Fix**: Add delay between tests or mark as `muteAlarm: true`
+- **Before concluding anything**, read "Throttled Body Looks Like a Driver Bug" below.
+
+### Throttled Body Looks Like a Driver Bug
+
+**The most expensive mis-triage in this codebase.** When a host throttles or challenges us it returns
+an empty or interstitial body. The driver then runs its `match` / `rewrite` step against that body,
+finds nothing, and reports `RULE_FAILED: Steps failed` or `Nothing rewritten during rewrite` — which
+reads exactly like broken driver logic.
+
+- **Symptom**: `RULE_FAILED` / `Nothing rewritten`, on a driver whose rules are actually fine
+- **Root cause**: there was no content to match against
+- **How to tell**, before touching any driver:
+
+```bash
+# Per-request status and body length from a crawl log
+jq -r '.collectedLogs[] | "\(.response.status) len=\(.response.body|length) \(.request.url)"' <log.json>
+```
+
+  `420`/`429` or `len=0` across the crawl → throttling, not a driver bug. A body that is present but
+  small is often a challenge page or an iframe wrapper — read it before assuming.
+
+- **Real example**: 12 IEEE logs looked like driver bugs. 11 were HTTP 420 with empty bodies (one
+  user, rate-limited, also through their university proxy). The 12th had real content and the driver
+  matched correctly — it was an iframe wrapper already handled by a later fix. **Zero driver bugs.**
+- **Corollary**: never trust a driver conclusion drawn from a throttled crawl. Re-run when not
+  throttled, or replay a log captured under working conditions.
+
+### Anti-Bot Markers That Are NOT Blocks
+
+Some vendor scripts are injected into **successful** pages as telemetry, not block pages. Detecting
+on them causes false `BLOCKED` classifications that break working crawls.
+
+- `APM_DO_NOT_TOUCH` (Akamai) appears on normal IEEE article pages that parse fine — it is *not* a
+  block marker. Verified: it was present in all 5 responses of a crawl, including the page the driver
+  successfully extracted `pdfUrl` from and the stamp.jsp page containing the real PDF iframe.
+- Before adding any challenge detector, confirm the marker is absent from successful responses.
 
 ---
 
