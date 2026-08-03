@@ -15,10 +15,20 @@ Activate when user provides:
 - A URL that needs crawling fixed
 - A driver name (e.g., "Brieflands", "BioProtocol")
 - A report that a crawler is broken
+- A crawl log (`*_pdf-crawl-log_*.json`) or a directory of them
 
 ## Workflow
 
+**If a crawl log exists, start there.** A log replays the user's exact conditions offline and
+deterministically; a live `crawler:debug` run only shows what the site does for *your* IP today.
+For a directory of logs, use the `crawler-fix-loop` skill's toolchain (`triage.js --logs-dir`).
+
 ```
+0. REPLAY (only when you have a log)
+   ├── Run: yarn crawler:debug:replay <log.json>
+   ├── Check for "No log for <url>, falling back to network" — those steps are NOT reproductions
+   └── Read the recorded status + body length before blaming the driver (see tips.md)
+
 1. IDENTIFY
    ├── Detect if input is URL or driver name
    ├── Determine mode (META / PDF / Both)
@@ -31,6 +41,8 @@ Activate when user provides:
 
 3. DIAGNOSE
    ├── Read tips.md for known patterns
+   ├── FIRST rule out throttling/blocking — an empty or challenge body makes a driver's
+   │   match/rewrite fail and look like a driver bug (tips.md: "Throttled Body Looks Like...")
    ├── Analyze failure (network, parsing, access, etc.)
    ├── Check if issue is Node.js-only or also affects browser
    └── Identify root cause
