@@ -328,6 +328,10 @@ When asked to fix many failing tests, triage this way:
    - Test URLs migrated to new providers (update `pdfTests.ts` or `metaTests.ts`).
    - Captcha/Cloudflare — document with `description` in tests, don't attempt to bypass.
 4. **Blocked locally vs in user's env**: If you see `Blocked by Cloudflare captcha` on *every* fetch, it's your IP. The user's test runner env is often not CF-blocked, so logic fixes still land even if verification has to wait.
+5. **Baseline before calling anything a regression.** The e2e and PDF suites carry pre-existing
+   failures. `git stash` your change, re-run the same filter, and compare failure *sets* — not counts.
+   Run the suite in isolation too: parallel workers make slow network tests time out differently and
+   invent failures that look like yours.
 
 ---
 
