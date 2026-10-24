@@ -35,6 +35,11 @@
       "name": "obsidian-recall",
       "description": "Recall context from Obsidian vault and sync Claude sessions",
       "source": "./plugins/obsidian-recall"
+    },
+    {
+      "name": "cross-agent",
+      "description": "Route work to other coding agents (Codex, Antigravity, opencode, Claude) by role, configured per repo",
+      "source": "./plugins/cross-agent"
     }
   ]
 }
