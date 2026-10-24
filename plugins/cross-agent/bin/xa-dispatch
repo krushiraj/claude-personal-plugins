@@ -58,7 +58,7 @@ async function main() {
   const timeoutMs = Number(opts.timeout || 600) * 1000;
 
   try {
-    const result = await dispatch({ role, prompt, cwd: loaded.dir === cwd ? cwd : cwd, config: loaded.config, adapters, outDir, timeoutMs });
+    const result = await dispatch({ role, prompt, cwd, config: loaded.config, adapters, outDir, timeoutMs });
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     process.exit(result.exitCode);
   } catch (err) {
