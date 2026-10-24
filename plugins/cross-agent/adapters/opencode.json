@@ -1,0 +1,14 @@
+{
+  "name": "opencode",
+  "bin": "opencode",
+  "base": ["run"],
+  "access": {
+    "read": [],
+    "write": []
+  },
+  "model": ["-m", "{model}"],
+  "effort": [],
+  "prompt": ["{prompt}"],
+  "result": "stdout",
+  "enforcesReadOnly": false
+}

@@ -1,0 +1,14 @@
+{
+  "name": "claude",
+  "bin": "claude",
+  "base": ["-p"],
+  "access": {
+    "read": ["--permission-mode", "plan"],
+    "write": ["--permission-mode", "acceptEdits"]
+  },
+  "model": ["--model", "{model}"],
+  "effort": ["--effort", "{effort}"],
+  "prompt": ["{prompt}"],
+  "result": "stdout",
+  "enforcesReadOnly": true
+}
