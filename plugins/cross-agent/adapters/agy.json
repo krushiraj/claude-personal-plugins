@@ -1,0 +1,14 @@
+{
+  "name": "agy",
+  "bin": "agy",
+  "base": [],
+  "access": {
+    "read": ["--mode", "plan"],
+    "write": ["--mode", "accept-edits"]
+  },
+  "model": ["--model", "{model}"],
+  "effort": ["--effort", "{effort}"],
+  "prompt": ["-p", "{prompt}"],
+  "result": "stdout",
+  "enforcesReadOnly": true
+}

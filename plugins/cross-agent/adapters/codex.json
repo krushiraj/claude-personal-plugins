@@ -1,0 +1,14 @@
+{
+  "name": "codex",
+  "bin": "codex",
+  "base": ["exec", "-C", "{cwd}", "-o", "{outfile}"],
+  "access": {
+    "read": ["-s", "read-only"],
+    "write": ["-s", "workspace-write"]
+  },
+  "model": ["-m", "{model}"],
+  "effort": ["-c", "model_reasoning_effort={effort}"],
+  "prompt": ["{prompt}"],
+  "result": "outfile",
+  "enforcesReadOnly": true
+}

@@ -1,0 +1,5 @@
+{
+  "name": "cross-agent",
+  "version": "0.1.0",
+  "description": "Route work to other coding agents (Codex, Antigravity, opencode, Claude) by role, configured per repo"
+}
