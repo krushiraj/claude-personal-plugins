@@ -1,7 +1,7 @@
 {
   "name": "opencode",
   "bin": "opencode",
-  "base": ["run"],
+  "base": ["run", "--dir", "{cwd}"],
   "access": {
     "read": [],
     "write": []

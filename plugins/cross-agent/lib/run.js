@@ -11,27 +11,33 @@ const wtree = require('./worktree');
 const EXIT_ALL_FAILED = 3;
 
 // macOS has no `timeout`, so enforce it here: SIGTERM, then SIGKILL after a grace period.
+// The agent runs in its own process group so grandchildren (servers, shells) die with it and cannot
+// keep our pipes open; after the kill we stop waiting for `close` and resolve anyway.
 function spawnAgent({ bin, args, cwd, timeoutMs, env }) {
   return new Promise((resolve) => {
-    const child = spawn(bin, args, { cwd, env, stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(bin, args, { cwd, env, stdio: ['ignore', 'pipe', 'pipe'], detached: true });
     let stdout = '';
     let stderr = '';
     let timedOut = false;
+    let done = false;
+    const finish = (code, extra = '') => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      resolve({ code, stdout, stderr: stderr + extra, timedOut });
+    };
+    const killGroup = (sig) => {
+      try { process.kill(-child.pid, sig); } catch (_) { /* already gone */ }
+    };
     child.stdout.on('data', (d) => { stdout += d; });
     child.stderr.on('data', (d) => { stderr += d; });
     const timer = setTimeout(() => {
       timedOut = true;
-      child.kill('SIGTERM');
-      setTimeout(() => child.kill('SIGKILL'), 2000).unref();
+      killGroup('SIGTERM');
+      setTimeout(() => { killGroup('SIGKILL'); finish(null); }, 2000);
     }, timeoutMs);
-    child.on('error', (err) => {
-      clearTimeout(timer);
-      resolve({ code: null, stdout, stderr: `${stderr}${err.message}`, timedOut });
-    });
-    child.on('close', (code) => {
-      clearTimeout(timer);
-      resolve({ code, stdout, stderr, timedOut });
-    });
+    child.on('error', (err) => finish(null, err.message));
+    child.on('close', (code) => { killGroup('SIGKILL'); finish(code); });
   });
 }
 
@@ -66,6 +72,11 @@ async function dispatch({ role, prompt, cwd, config, adapters, outDir, timeoutMs
   const workdir = wt ? wt.dir : cwd;
   const attempts = [];
   const base = { role, access: r.access };
+  // Some CLIs resolve the git project root instead of honouring cwd and write outside the worktree.
+  const mainBefore = wt ? wtree.statusSnapshot(wt.root) : null;
+  const escapeWarning = () => (wt && mainBefore !== null && wtree.statusSnapshot(wt.root) !== mainBefore
+    ? 'The main working tree changed while the agent ran in an isolated worktree; the agent may have written outside it. Inspect with git status.'
+    : undefined);
 
   for (const spec of r.agents) {
     const { adapter: name, model } = parseAgent(spec);
@@ -94,6 +105,8 @@ async function dispatch({ role, prompt, cwd, config, adapters, outDir, timeoutMs
       if (guardReadOnly && before !== null && wtree.statusSnapshot(workdir) !== before) {
         out.warning = `${adapter.name} cannot enforce read-only; the working tree changed during a read role. Inspect with git status.`;
       }
+      const escaped = escapeWarning();
+      if (escaped) out.warning = [out.warning, escaped].filter(Boolean).join(' ');
       if (wt) {
         const patchPath = path.join(outDir, `${role}.patch`);
         out.worktree = {
@@ -112,6 +125,7 @@ async function dispatch({ role, prompt, cwd, config, adapters, outDir, timeoutMs
     ...base, ok: false, exitCode: EXIT_ALL_FAILED, agent: null, fellBack: true, attempts,
     notice: buildNotice(attempts, null),
     nextStep: 'Spawn a native Claude subagent for this role.',
+    warning: escapeWarning(),
     worktree: wt ? { dir: wt.dir, branch: wt.branch, cleanup: wtree.cleanupCommand(wt) } : undefined,
   };
 }
