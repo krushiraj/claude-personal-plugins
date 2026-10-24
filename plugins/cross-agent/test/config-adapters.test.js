@@ -66,7 +66,10 @@ test('argv per adapter matches the headless invocations verified in the spike', 
     buildArgv(a.agy, { ...vars, access: 'read', model: 'gemini-3.8-flash-high' }).args,
     ['--mode', 'plan', '--model', 'gemini-3.8-flash-high', '-p', 'hi'],
   );
-  assert.deepStrictEqual(buildArgv(a.opencode, { ...vars, access: 'write', model: 'default' }).args, ['run', 'hi']);
+  assert.deepStrictEqual(
+    buildArgv(a.opencode, { ...vars, access: 'write', model: 'default' }).args,
+    ['run', '--dir', '/w', 'hi'],
+  );
   assert.deepStrictEqual(
     buildArgv(a.claude, { ...vars, access: 'write', model: 'sonnet', effort: 'low' }).args,
     ['-p', '--permission-mode', 'acceptEdits', '--model', 'sonnet', '--effort', 'low', 'hi'],

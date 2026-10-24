@@ -88,6 +88,31 @@ test('timeout kills the agent and falls back', async () => {
   assert.match(out.notice, /timed out/);
 });
 
+test('timeout still resolves when a grandchild keeps the output pipes open', async () => {
+  // The shell exits on SIGTERM but the backgrounded sleep would hold stdout for 30s.
+  const s = setup(
+    { r: { access: 'read', agents: ['a:m', 'b:m'] } },
+    { a: 'sleep 30 & wait', b: 'echo hi' },
+  );
+  const started = Date.now();
+  const out = await run(s, 'r', { timeoutMs: 300 });
+  assert.strictEqual(out.agent, 'b:m');
+  assert.ok(Date.now() - started < 8000, 'must not wait for the grandchild');
+});
+
+test('warns when an agent writes to the main tree instead of its worktree', async () => {
+  const repo = gitRepo();
+  // Simulates a CLI that resolves the git project root: it writes into the main tree, not its cwd.
+  const s = setup(
+    { w: { access: 'write', isolate: 'worktree', agents: ['a:m'] } },
+    { a: `echo leaked > "${repo}/leak.txt"; echo done` },
+  );
+  s.cwd = repo;
+  const out = await run(s, 'w');
+  assert.strictEqual(out.ok, true);
+  assert.match(out.warning, /main working tree changed/);
+});
+
 test('all agents failing returns exit 3 and tells the skill to use a native subagent', async () => {
   const s = setup({ r: { access: 'read', agents: ['a:m'] } }, { a: 'exit 7' });
   const out = await run(s, 'r');
