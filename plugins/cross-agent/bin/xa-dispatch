@@ -3,6 +3,7 @@
 
 // Usage: xa-dispatch <role> (--prompt-file <file> | --prompt <text>) [--cwd <dir>] [--timeout <sec>] [--out-dir <dir>]
 //        xa-dispatch --list [--cwd <dir>]
+//        xa-dispatch --probe <adapter:model> [--timeout <sec>]   (is this agent usable right now?)
 // Prints one JSON result on stdout. Exit: 0 ok, 2 usage/config error, 3 every configured agent failed.
 
 const fs = require('fs');
@@ -32,6 +33,18 @@ async function main() {
   const opts = parseArgs(process.argv.slice(2));
   const cwd = path.resolve(opts.cwd || process.cwd());
   const adapters = loadAdapters();
+
+  if (opts.probe) {
+    // Cheap liveness check of one agent spec, independent of any repo config.
+    const config = { version: 1, roles: { probe: { access: 'read', agents: [opts.probe] } } };
+    const outDir = path.join(os.tmpdir(), 'cross-agent', `probe-${Date.now().toString(36)}`);
+    const result = await dispatch({
+      role: 'probe', prompt: 'Reply with exactly the word PONG. Do not use any tools.', cwd,
+      config, adapters, outDir, timeoutMs: Number(opts.timeout || 90) * 1000,
+    });
+    process.stdout.write(`${JSON.stringify({ spec: opts.probe, ok: result.ok, reason: result.attempts[0] && result.attempts[0].reason }, null, 2)}\n`);
+    process.exit(result.ok ? 0 : 3);
+  }
 
   let loaded;
   try {
